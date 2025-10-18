@@ -13,20 +13,29 @@ def normalize(v):
 scene = Scene()
 
 O = np.array([0.2, 0.4])
-D = np.array([0.6, 0])
+D = np.array([0.6, 0.2])
 
 ray = Ray(O, D)
 
 A = np.array([1, 2])
 B = np.array([2, 1.5])
 
-x = np.linspace(1, 10, 30)
+x = np.linspace(1, 10, 50)
 y = np.sin(x)
 
 for i in range(len(x) - 1):
     segment = Segment(x[i], y[i], x[i+1], y[i+1])
     scene.AddSegment(segment)
+    
+y = np.sin(x) + 2
 
-scene.AddRay(ray)
+for i in range(len(x) - 1):
+    segment = Segment(x[i], y[i], x[i+1], y[i+1])
+    scene.AddSegment(segment)
+    
+scene.AddSegment(Segment(1.0, 1.0, 10.0, 1.0))
+
+#scene.AddRay(ray)
+scene.AddRay(Ray(np.array([1, 2]), np.array([0.8, -0.8])))
 
 scene.Render()
