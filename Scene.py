@@ -33,10 +33,10 @@ class Scene:
             ray.Render(ax, f"Ray {index}")
 
             for seg in self.Segments:
-                hit, intersect = ray.Intersect(seg)
+                hit, t = ray.Intersect(seg)
 
                 if hit:
-                    ax.scatter(*intersect, color='orange', s=60, label='hit')
+                    ax.scatter(*ray.GetIntersect(t), color='orange', s=60, label='hit')
 
             index += 1
             

@@ -20,25 +20,29 @@ class Ray:
         denom = self.Cross(self.Direction, segment)
         
         if (np.abs(denom) <= 1e-12):
-            return False, np.array([0, 0])
+            return False, 0
         
         invDenom = 1 / denom
+        aToOrigin = seg.A - self.Origin
         
-        t = self.Cross((seg.A - self.Origin), segment) * invDenom
-        s = self.Cross((seg.A - self.Origin), self.Direction) * invDenom
+        t = self.Cross(aToOrigin, segment) * invDenom
+        s = self.Cross(aToOrigin, self.Direction) * invDenom
         
         if (t < 0 or (s < 0 or s > 1)):
-            return False, np.array([0, 0])
+            return False, 0
         
-        intersection = self.Origin + t * self.Direction
-        
-        return True, intersection
+        return True, t
+    
+    def GetIntersect(self, t):
+        return self.Origin + t * self.Direction
     
     def Render(self, ax, label):
         ax.quiver(self.Origin[0], self.Origin[1], self.Direction[0], self.Direction[1],
           angles='xy', scale_units='xy', scale=0.1,
           color='red', label = label)
     
+        
+        
         
         
         
