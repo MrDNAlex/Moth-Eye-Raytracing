@@ -35,6 +35,6 @@ for i in range(len(x) - 1):
     
 scene.AddSegment(Segment(1.0, 1.0, 10.0, 1.0))
 
-scene.AddRay(Ray(np.array([1, 2]), np.array([1, -0.8])))
+scene.AddRay(Ray(np.array([1, 2]), np.array([1.2, -0.8])))
 
 scene.Render()

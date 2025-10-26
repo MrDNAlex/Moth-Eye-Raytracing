@@ -28,23 +28,20 @@ class Scene:
         for seg in self.Segments:
             seg.Render(ax)
 
-        for ray in self.Rays:
+        while len(self.Rays) > 0:
 
-            ray.Render(ax, f"Ray {index}")
+            newRays = []
+            
+            for ray in self.Rays:
 
-            for i in range(ray.MaxBounce):
+                ray.Render(ax, f"Ray {index}")
                 
-                hit, t, seg = ray.Travel(self.Segments)
-
-                if hit:
-                    print(i, t)
-                    ax.scatter(*ray.GetIntersectPos(t), color='orange', s=60, label='hit')
-                    ray.Transmit(seg, 1, 1.40)
-                    ray.GetFresnelCoeffs(seg, 1, 1.40)
-                    #ray.Reflect(seg)
-                    ray.Render(ax, f"Ray {index} {i}")
-                    seg.RenderNormal(ax)
-
+                rays = ray.Travel(self.Segments)
+                
+                if rays != None:
+                    newRays.extend(rays)
+                
+            self.Rays = newRays
             index += 1
             
         ax.set_aspect('equal')

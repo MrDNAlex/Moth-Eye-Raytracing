@@ -9,13 +9,22 @@ class Ray:
     
     CurrentMedium : float
     
+    CurrentBounce : int
+    
     MaxBounce = 5
     
-    def __init__ (self, origin, direction):
+    Power : float
+    
+    def __init__ (self, origin, direction, currentBounce = 0, power = 1):
         
         self.Origin = origin
         self.Direction = direction / np.linalg.norm(direction) 
         self.CurrentMedium = 1
+        self.Power = power
+        self.CurrentBounce = currentBounce
+      
+    def Clone (self):
+        return Ray(self.Origin, self.Direction, self.CurrentBounce, self.Power)
         
     def Cross (self, v1, v2):
         return v1[0]*v2[1] - v1[1]*v2[0]
@@ -48,6 +57,11 @@ class Ray:
         
     def Travel(self, segments: list[Segment]):
         
+        self.CurrentBounce += 1
+        
+        if self.CurrentBounce > self.MaxBounce:
+            return None
+        
         minT = np.inf
         minSeg = None
         
@@ -57,12 +71,21 @@ class Ray:
             if hit and t < minT:
                 minT = t
                 minSeg = seg
-                
-        if minT != np.inf:
-            return True, minT, minSeg
+        if minT == np.inf:
+            return None
         
-        return False, 0, None
-    
+        R, T = self.GetFresnelCoeffs(minSeg, 1, 1.40)
+        
+        cloneRay = self.Clone()
+        
+        self.Power *= R
+        self.Reflect(minSeg)
+        
+        cloneRay.Power *= T
+        cloneRay.Transmit(minSeg, 1, 1.4)
+        
+        return [self, cloneRay]
+        
     def Reflect(self, segment : Segment):
         
         hit, t = self.Intersect(segment)
@@ -109,7 +132,7 @@ class Ray:
         
         normal = -1*segment.GetNormal()
         
-        incidentCos = -np.dot(normal, self.Direction)
+        incidentCos = -np.dot(segment.GetNormal(), self.Direction)
         incidentSin = np.sqrt(max(0.0, 1.0 - incidentCos**2))
         
         transmitSin = n1 / n2 * incidentSin
@@ -129,6 +152,12 @@ class Ray:
 
         rp = (n2ICos-n1TCos)*inverseP
         tp = (2*n1ICos)*inverseP
+        
+        Rs = rs**2
+        Rp = rp**2
+        
+        R = 0.5 *(Rs + Rp)
+        T = 1 - R
 
-        return rs, ts, rp, tp
+        return R, T
         
