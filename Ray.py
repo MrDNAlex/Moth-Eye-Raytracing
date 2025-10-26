@@ -7,12 +7,15 @@ class Ray:
     
     Direction : np.ndarray
     
+    CurrentMedium : float
+    
     MaxBounce = 5
     
     def __init__ (self, origin, direction):
         
         self.Origin = origin
         self.Direction = direction / np.linalg.norm(direction) 
+        self.CurrentMedium = 1
         
     def Cross (self, v1, v2):
         return v1[0]*v2[1] - v1[1]*v2[0]
@@ -43,7 +46,7 @@ class Ray:
         ax.quiver(self.Origin[0], self.Origin[1], self.Direction[0], self.Direction[1],
           angles='xy', scale_units='xy', scale=1, label = label)
         
-    def Travel(self, segments):
+    def Travel(self, segments: list[Segment]):
         
         minT = np.inf
         minSeg = None
@@ -60,7 +63,7 @@ class Ray:
         
         return False, 0, None
     
-    def Reflect(self, segment):
+    def Reflect(self, segment : Segment):
         
         hit, t = self.Intersect(segment)
         newO = self.GetIntersectPos(t)
@@ -76,7 +79,7 @@ class Ray:
         self.Origin = newO
         self.Direction = newDir / np.linalg.norm(newDir)
     
-    def Transmit(self, segment, n1, n2):
+    def Transmit(self, segment: Segment, n1, n2):
         
         hit, t = self.Intersect(segment)
         newO = self.GetIntersectPos(t)
@@ -102,9 +105,30 @@ class Ray:
         self.Origin = newO
         self.Direction = refr_dir
         
+    def GetFresnelCoeffs(self, segment : Segment, n1, n2):
         
+        normal = -1*segment.GetNormal()
         
+        incidentCos = -np.dot(normal, self.Direction)
+        incidentSin = np.sqrt(max(0.0, 1.0 - incidentCos**2))
         
+        transmitSin = n1 / n2 * incidentSin
+        transmitCos = np.sqrt(max(0.0, 1.0 - transmitSin**2))
         
+        n1ICos = n1*incidentCos
+        n2ICos = n2*incidentCos
         
+        n1TCos = n1*transmitCos
+        n2TCos = n2*transmitCos
+        
+        inverseS = 1/(n1ICos+n2TCos)
+        inverseP = 1/(n2ICos+n1TCos)
+        
+        rs = (n1ICos-n2TCos)*inverseS
+        ts = (2*n1ICos)*inverseS
+
+        rp = (n2ICos-n1TCos)*inverseP
+        tp = (2*n1ICos)*inverseP
+
+        return rs, ts, rp, tp
         

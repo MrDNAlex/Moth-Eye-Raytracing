@@ -40,6 +40,7 @@ class Scene:
                     print(i, t)
                     ax.scatter(*ray.GetIntersectPos(t), color='orange', s=60, label='hit')
                     ray.Transmit(seg, 1, 1.40)
+                    ray.GetFresnelCoeffs(seg, 1, 1.40)
                     #ray.Reflect(seg)
                     ray.Render(ax, f"Ray {index} {i}")
                     seg.RenderNormal(ax)

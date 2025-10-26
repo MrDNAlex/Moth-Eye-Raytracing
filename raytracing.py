@@ -13,7 +13,7 @@ def normalize(v):
 scene = Scene()
 
 O = np.array([0.2, 0.4])
-D = np.array([0.6, 0.2])
+D = np.array([0.8, 0.2])
 
 ray = Ray(O, D)
 
@@ -35,7 +35,6 @@ for i in range(len(x) - 1):
     
 scene.AddSegment(Segment(1.0, 1.0, 10.0, 1.0))
 
-#scene.AddRay(ray)
-scene.AddRay(Ray(np.array([1, 2]), np.array([0.8, -0.8])))
+scene.AddRay(Ray(np.array([1, 2]), np.array([1, -0.8])))
 
 scene.Render()
