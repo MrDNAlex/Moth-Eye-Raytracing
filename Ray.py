@@ -11,7 +11,7 @@ class Ray:
     
     CurrentBounce : int
     
-    MaxBounce = 5
+    MaxBounce = 7
     
     Power : float
     
@@ -78,13 +78,24 @@ class Ray:
         
         cloneRay = self.Clone()
         
+        rays = []
+        
         self.Power *= R
-        self.Reflect(minSeg)
-        
         cloneRay.Power *= T
-        cloneRay.Transmit(minSeg, 1, 1.4)
         
-        return [self, cloneRay]
+        if (self.Power > 0.005):
+            self.Reflect(minSeg)
+            rays.append(self)
+        else:
+            print("Ray destroyed")
+        
+        if (cloneRay.Power > 0.005):
+            cloneRay.Transmit(minSeg, 1, 1.4)
+            rays.append(cloneRay)
+        else:
+            print("Ray destroyed")
+    
+        return rays
         
     def Reflect(self, segment : Segment):
         
