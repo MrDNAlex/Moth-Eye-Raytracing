@@ -1,8 +1,16 @@
 ﻿
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-
 #include <stdio.h>
+#include "Object.h"
+#include "Ray.h"
+#include "RayHit.h"
+#include "Scene.h"
+#include "Mirror.h"
+#include "Target.h"
+#include "Wave.h"
+#include <functional>
+#include "PointSource.h"
 
 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
 
@@ -13,6 +21,31 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 }
 
 int main()
+{
+    Scene scene = Scene("CaptureTest2");
+
+    scene.AddObject(Mirror(-10, 10, 10, 10));
+    scene.AddObject(Mirror(-10, 10, -10, -10));
+    scene.AddObject(Mirror(10, 10, 10, -10));
+    scene.AddObject(Target(-10, -10, 10, -10));
+    scene.AddObject(Wave(-10, -5, 10, -5, 100, [](double x, double y) { return 1.1; }));
+    scene.AddObject(Wave(-10, -5.5, 10, -5.5, 100, [](double x, double y) { return 1.2; }));
+    scene.AddObject(Wave(-10, -6, 10, -6, 100, [](double x, double y) { return 1.3; }));
+    scene.AddObject(Wave(-10, -6.5, 10, -6.5, 100, [](double x, double y) { return 1.4; }));
+
+    scene.AddRay(Ray(1.0, 0.0, 0.0, -1.0));
+    scene.AddRay(Ray(2.0, 0.0, -1.0, -1.0));
+    scene.AddRay(Ray(3.0, 0.0, 1.0, -1.0));
+
+	PointSource ps = PointSource(0, 0, 1000);
+
+    for (Ray& ray : ps.GenerateRays())
+        scene.AddRay(ray);
+
+    scene.Render();
+}
+
+int oldCuda()
 {
     const int arraySize = 5;
     const int a[arraySize] = { 1, 2, 3, 4, 5 };
@@ -38,7 +71,7 @@ int main()
     }
 
     return 0;
-}
+};
 
 // Helper function for using CUDA to add vectors in parallel.
 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size)

@@ -1,0 +1,9 @@
+{
+  "name": "moth-eye-raytracing",
+  "version": "0.1.0",
+  "builtin-baseline": "404735f99e06c59b4cfc78ea64898cb74069d896",
+  "dependencies": [
+    "nlohmann-json"
+  ]
+}
+
