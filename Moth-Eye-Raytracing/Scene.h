@@ -89,7 +89,7 @@ public:
 
 		//Save the File 
 		std::ofstream file(FileName + ".json");
-		file << j.dump(4);  // Pretty Indent of 4 Spaces
+		file << j.dump(2);  // Pretty Indent of 4 Spaces
 		file.close();
 
 		std::cout << "Render Saved" << std::endl;

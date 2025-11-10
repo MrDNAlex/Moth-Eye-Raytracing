@@ -22,7 +22,15 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 
 int main()
 {
-    Scene scene = Scene("CaptureTest2");
+    CaptureTest();
+
+    std::cout << "Press ENTER to exit...";
+    std::cin.get();
+}
+
+void CaptureTest()
+{
+    Scene scene = Scene("CaptureTest");
 
     scene.AddObject(Mirror(-10, 10, 10, 10));
     scene.AddObject(Mirror(-10, 10, -10, -10));
@@ -37,7 +45,7 @@ int main()
     scene.AddRay(Ray(2.0, 0.0, -1.0, -1.0));
     scene.AddRay(Ray(3.0, 0.0, 1.0, -1.0));
 
-	PointSource ps = PointSource(0, 0, 1000);
+    PointSource ps = PointSource(0, 0, 100);
 
     for (Ray& ray : ps.GenerateRays())
         scene.AddRay(ray);
