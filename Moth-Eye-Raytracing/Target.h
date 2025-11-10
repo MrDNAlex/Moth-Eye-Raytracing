@@ -18,10 +18,18 @@ public:
 	}
 
 	std::vector<Ray> InteractWithRay(Segment* segment, Ray* ray) override
-	{
+	{		
 		this->CapturedPower += ray->Power;
 		this->CapturedRays += 1.0;
 
 		return std::vector<Ray>();
+	}
+
+	json ToJSON() override
+	{
+		json j = Object::ToJSON();
+		j["CapturedPower"] = this->CapturedPower;
+		j["CapturedRays"] = this->CapturedRays;
+		return j;
 	}
 };

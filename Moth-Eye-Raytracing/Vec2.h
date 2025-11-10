@@ -1,6 +1,9 @@
 #pragma once
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+const double EPSILON = 1e-12;
+
 class Vec2
 {
 public:
@@ -28,6 +31,10 @@ public:
 	void Normalize()
 	{
 		double length = sqrt(X * X + Y * Y);
+
+		if (std::abs(length) < EPSILON)
+			length = EPSILON;
+
 		X /= length;
 		Y /= length;
 	}

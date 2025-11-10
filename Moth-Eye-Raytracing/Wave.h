@@ -15,7 +15,7 @@ public:
 		for (int i = 0; i < resolution; i++)
 		{
 			double phase = B * (x[i] - C);
-			yShift[i] += A * sin(phase) + D + yShift[i];
+			yShift[i] += A * sin(phase) + D;
 		}
 
 		for (int i = 0; i < resolution - 1; i++)

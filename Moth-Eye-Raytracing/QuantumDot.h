@@ -29,7 +29,7 @@ public:
 
 	std::vector<Ray> InteractWithRay(Segment* segment, Ray* ray) override
 	{
-		int randInt = randomInt(0, this->Segments.size());
+		int randInt = randomInt(0, this->Segments.size()-1);
 
 		Segment randomSegment = this->Segments[randInt];
 
@@ -38,9 +38,10 @@ public:
 
 		ray->Origin = newOrigin;
 		ray->Direction = normal;
+		ray->CurrentBounce = 0;
 
 		std::vector<Ray> rays = std::vector<Ray>();
-		rays.push_back(*ray);
+		rays.push_back(ray->Clone());
 
 		return rays;
 	}

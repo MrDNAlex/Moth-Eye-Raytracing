@@ -35,6 +35,12 @@
     <ClInclude Include="PointSource.h">
       <Filter>RaySource</Filter>
     </ClInclude>
+    <ClInclude Include="Ray.h" />
+    <ClInclude Include="RayHit.h" />
+    <ClInclude Include="Vec2.h" />
+    <ClInclude Include="RaySource.h">
+      <Filter>RaySource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

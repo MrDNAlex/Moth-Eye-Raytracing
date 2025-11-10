@@ -68,6 +68,7 @@ public:
 
 		segment->Transmit(&cloneRay);
 		cloneRay.CurrentMedium = segment->RefractiveIndex;
+		cloneRay.CurrentBounce = 0;
 		resultingRays.push_back(cloneRay);
 
 		return resultingRays;
@@ -88,7 +89,7 @@ public:
 		return result;
 	}
 
-	json ToJSON()
+	virtual json ToJSON()
 	{
 		json j;
 		j["Type"] = Type;

@@ -11,9 +11,15 @@ public:
 
 	int FrameNumber;
 
+	int LostRays;
+
+	int DestroyedRays;
+
 	Frame(int frameNumber) : FrameNumber(frameNumber)
 	{
 		Rays = std::vector<Ray>();
+		LostRays = 0;
+		DestroyedRays = 0;
 	}
 
 	void AddRay(Ray ray)
@@ -24,12 +30,14 @@ public:
 	json ToJSON()
 	{
 		json j;
-		j["frame_number"] = this->FrameNumber;
-		j["ray_count"] = this->Rays.size();
-		j["rays"] = json::array();
+		j["FrameNumber"] = this->FrameNumber;
+		j["RayCount"] = this->Rays.size();
+		j["LostRays"] = this->LostRays;
+		j["DestroyedRays"] = this->DestroyedRays;
+		j["Rays"] = json::array();
 
 		for (Ray& ray : this->Rays)
-			j["rays"].push_back(ray.ToJSON());
+			j["Rays"].push_back(ray.ToJSON());
 
 		return j;
 	}

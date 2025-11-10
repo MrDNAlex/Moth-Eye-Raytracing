@@ -7,8 +7,6 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-const double EPSILON = 1e-12;
-
 class Segment
 {
 public:
@@ -115,7 +113,7 @@ public:
 		json j;
 		j["A"] = A.ToJSON();
 		j["B"] = B.ToJSON();
-		j["refractiveIndex"] = RefractiveIndex;
+		j["RefractiveIndex"] = RefractiveIndex;
 		return j;
 	}
 };
