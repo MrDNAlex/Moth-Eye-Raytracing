@@ -15,6 +15,8 @@
 #include "DirectionalLight.h"
 #include "ConeLight.h"
 
+
+
 void CaptureTest()
 {
 	Scene scene = Scene("CaptureTest");

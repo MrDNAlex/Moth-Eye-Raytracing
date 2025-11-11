@@ -11,7 +11,7 @@ public:
 	Vec2 B;
 
 
-	ConeLight(double ox, double oy, double x1, double y1, double x2, double y2, int numberOfRays) : RaySource(numberOfRays), Origin(ox, oy), A(x1, y1), B(x2, y2)
+	ConeLight(double ox, double oy, double x1, double y1, double x2, double y2, int numberOfRays, double currentMedium = 1.0) : RaySource(numberOfRays, currentMedium), Origin(ox, oy), A(x1, y1), B(x2, y2)
 	{
 	}
 
@@ -36,7 +36,10 @@ public:
 			Vec2 dir = target - Origin;
 			dir.Normalize();
 
-			rays.push_back(Ray(Origin.X, Origin.Y, dir.X, dir.Y));
+			Ray ray = Ray(Origin.X, Origin.Y, dir.X, dir.Y);
+			ray.CurrentMedium = this->CurrentMedium;
+
+			rays.push_back(ray);
 		}
 
 		return rays;

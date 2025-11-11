@@ -12,7 +12,7 @@ public:
 	bool Down;
 
 
-	DirectionalLight(double x1, double y1, double x2, double y2, int numberOfRays, bool down = true) : RaySource(numberOfRays), A(x1, y1), B(x2, y2)
+	DirectionalLight(double x1, double y1, double x2, double y2, int numberOfRays, bool down = true, double currentMedium = 1.0) : RaySource(numberOfRays, currentMedium), A(x1, y1), B(x2, y2)
 	{
 		this->Down = down;	
 	}
@@ -43,7 +43,10 @@ public:
 			if (Down && direction.Dot(Vec2(0, -1)) < 0)
 					direction = direction * -1;
 
-			rays.push_back(Ray(pointOnLine.X, pointOnLine.Y, direction.X, direction.Y));
+			Ray ray = Ray(pointOnLine.X, pointOnLine.Y, direction.X, direction.Y);
+			ray.CurrentMedium = this->CurrentMedium;
+
+			rays.push_back(ray);
 		}
 
 		return rays;

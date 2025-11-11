@@ -8,7 +8,7 @@ public:
 
 	Vec2 Origin;
 
-	PointSource(double x, double y, int numberOfRays) : RaySource(numberOfRays), Origin(x, y)
+	PointSource(double x, double y, int numberOfRays, double currentMedium=1.0) : RaySource(numberOfRays, currentMedium), Origin(x, y)
 	{
 	}
 
@@ -25,7 +25,10 @@ public:
 			double dx = cos(angle);
 			double dy = sin(angle);
 
-			rays.push_back(Ray(this->Origin.X, this->Origin.Y, dx, dy));
+			Ray ray = Ray(this->Origin.X, this->Origin.Y, dx, dy);
+			ray.CurrentMedium = this->CurrentMedium;
+
+			rays.push_back(ray);
 		}
 
 		return rays;

@@ -7,9 +7,12 @@ public:
 
 	int NumberOfRays;
 
-	RaySource(int numberOfRays)
+	double CurrentMedium;
+
+	RaySource(int numberOfRays, double currentMedium = 1.0)
 	{
 		this->NumberOfRays = numberOfRays;
+		this->CurrentMedium = currentMedium;
 	}
 
 	virtual std::vector<Ray> GenerateRays()
