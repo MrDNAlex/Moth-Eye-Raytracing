@@ -10,11 +10,13 @@ public:
 
 	Vec2 Direction;
 
-	double CurrentMedium;
-
 	int CurrentBounce;
 
 	int MaxBounce;
+
+	int Index;
+
+	double CurrentMedium;
 
 	double Power;
 
@@ -28,6 +30,7 @@ public:
 		this->MaxBounce = maxBounce;
 		this->Power = power;
 		this->OriginalPower = power;
+		this->Index = 0;
 	}
 
 	void Bounce()
@@ -44,6 +47,7 @@ public:
 	{
 		Ray newRay(this->Origin.X, this->Origin.Y, this->Direction.X, this->Direction.Y, this->CurrentBounce, this->Power, this->MaxBounce);
 		newRay.CurrentMedium = this->CurrentMedium;
+		newRay.Index = this->Index;
 		return newRay;
 	}
 
@@ -62,6 +66,7 @@ public:
 		j["MaxBounce"] = MaxBounce;
 		j["Power"] = Power;
 		j["CurrentMedium"] = CurrentMedium;
+		j["Index"] = Index;
 
 		return j;
 	}

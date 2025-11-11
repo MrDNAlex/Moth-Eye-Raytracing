@@ -15,11 +15,17 @@ public:
 
 	int DestroyedRays;
 
+	float LostPower;
+
+	float DestroyedPower;
+
 	Frame(int frameNumber) : FrameNumber(frameNumber)
 	{
 		Rays = std::vector<Ray>();
 		LostRays = 0;
 		DestroyedRays = 0;
+		LostPower = 0.0f;
+		DestroyedPower = 0.0f;
 	}
 
 	void AddRay(Ray ray)
@@ -34,6 +40,8 @@ public:
 		j["RayCount"] = this->Rays.size();
 		j["LostRays"] = this->LostRays;
 		j["DestroyedRays"] = this->DestroyedRays;
+		j["LostPower"] = this->LostPower;
+		j["DestroyedPower"] = this->DestroyedPower;
 		j["Rays"] = json::array();
 
 		for (Ray& ray : this->Rays)

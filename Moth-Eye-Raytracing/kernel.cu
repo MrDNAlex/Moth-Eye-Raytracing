@@ -32,10 +32,10 @@ void CaptureTest()
 
 	//PointSource source = PointSource(0, 0, 1000);
 	//DirectionalLight light = DirectionalLight(0.0, 0.0, 5.0, 5.0, 1000);
-	ConeLight light = ConeLight(0.0, 0.0, -1, 0, 0, -1, 1000);
+
+	scene.AddRaySource(new ConeLight(0.0, 0.0, -1, 0, 0, -1, 1000));
 
 	//scene.AddRays(source.GenerateRays());
-	scene.AddRays(light.GenerateRays());	
 	std::cout << "Render" << std::endl;
 	scene.Render();
 }

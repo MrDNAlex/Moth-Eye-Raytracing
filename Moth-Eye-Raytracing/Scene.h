@@ -11,6 +11,25 @@ class Scene
 {
 public:
 
+	struct SceneStats
+	{
+		int StartRays;
+		float StartPower;
+
+		int LostRays;
+		int DestroyedRays;
+		float LostPower;
+		float DestroyedPower;
+
+		json ToJSON()
+		{
+			json j;
+			j["StartRays"] = StartRays;
+			j["StartPower"] = StartPower;
+			return j;
+		}
+	};
+
 	std::vector<Object*> Objects;
 
 	std::vector<Ray> Rays;
@@ -20,6 +39,8 @@ public:
 	std::vector<RaySource*> RaySources;
 
 	std::string FileName;
+
+	SceneStats Stats;
 
 	Scene(std::string fileName)
 	{
@@ -50,9 +71,43 @@ public:
 		this->Frames.push_back(frame);
 	}
 
+	void AddRaySource(RaySource* source)
+	{
+		this->RaySources.push_back(source);
+	}
+
+	void Initialize()
+	{
+		std::cout << "Initializing Scene" << std::endl;
+
+		std::cout << "Generating Rays from Sources" << std::endl;
+
+		for (int i = 0; i < this->RaySources.size(); i++)
+		{
+			RaySource* source = this->RaySources[i];
+			std::vector<Ray> generatedRays = source->GenerateRays();
+			this->AddRays(generatedRays);
+			std::cout << "Generated " << generatedRays.size() << " Rays from Source " << i << std::endl;
+		}
+
+		double totalPower = 0.0;
+		for (int i = 0; i < this->Rays.size(); i++)
+		{
+			this->Rays[i].Index = i;
+			totalPower += this->Rays[i].Power;
+		}
+			
+		Stats.StartRays = this->Rays.size();
+		Stats.StartPower = totalPower;
+
+		std::cout << "Finished Initializing Scene" << std::endl;
+	}
+
 	void Render()
 	{
-		std::cout << "Rendering Started" << std::endl;
+		this->Initialize();
+
+		std::cout << "Rendering Scene" << std::endl;
 
 		int index = 0;
 
@@ -87,17 +142,22 @@ public:
 		AddFrame(frame);
 
 		std::cout << "Rendering Complete" << std::endl;
+		std::cout << "Saving..." << std::endl;
 
 		json j;
 
+		j["Stats"] = Stats.ToJSON();
+
 		j["Geometry"] = json::array();
+		j["Frames"] = json::array();
 
 		for (Object* object : this->Objects)
 			j["Geometry"].push_back(object->ToJSON());
 
-		j["Frames"] = json::array();
 		for (Frame& frame : this->Frames)
 			j["Frames"].push_back(frame.ToJSON());
+
+		std::cout << "Converted To JSON, Dumping..." << std::endl;
 
 		//Save the File 
 		std::ofstream file(FileName + ".json");
