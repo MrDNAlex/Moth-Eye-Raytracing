@@ -52,7 +52,7 @@ void ConeWaveUnitCell(int QDs)
 	double endY = 0.0;
 	double depth = -200.0;
 
-	scene.AddObject(new Wave(startX, startY, endX, endY, 1000, [](double x, double y) { return 1.1; }, A, B, C, D));
+	scene.AddObject(new Wave(startX, startY, endX, endY, 1000, [](double x, double y) { return 1.0; }, A, B, C, D));
 	scene.AddObject(new Mirror(startX, startY, startX, depth));
 	scene.AddObject(new Mirror(endX, startY, endX, depth));
 	scene.AddObject(new Target(startX, depth, endX, depth));
@@ -70,13 +70,75 @@ void ConeWaveUnitCell(int QDs)
 		double bx = endX;
 		double by = endY;
 
-		scene.AddRaySource(new ConeLight(ox, oy, ax, ay, bx, by, 10));
+		scene.AddRaySource(new ConeLight(ox, oy, ax, ay, bx, by, 10, 1.41));
 	}
 
 	std::cout << "Render" << std::endl;
 	scene.Render();
 }
 
+void ConeWaveguideUnitCell(int QDs, int waveguideLayers)
+{
+	std::string name = "Cone" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "UnitCell";
+
+	Scene scene = Scene(name);
+
+	//Constants
+	double qdRadius = 10.0;
+	double mothEyeHeight = 250.0;
+	double pi = 3.14159265358979323846;
+
+	double A = mothEyeHeight / 2.0;
+	double B = 2.0 * pi / mothEyeHeight;
+	double C = mothEyeHeight / 4.0;
+	double D = mothEyeHeight / 2.0;
+
+	double startX = -10000.0;
+	double endX = 10250.0;
+	double startY = 250.0;
+	double endY = 250.0;
+	double depth = -200.0;
+
+	scene.AddObject(new Mirror(startX, startY, startX, depth));
+	scene.AddObject(new Mirror(endX, startY, endX, depth));
+	scene.AddObject(new Target(startX, depth, endX, depth));
+
+	std::vector<double> waveguideRefractiveIndex = linspace(1.0, 1.41, waveguideLayers);
+	std::vector<double> waveguidePosition = linspace(endY, 0, waveguideLayers);
+
+	for (int i = 0; i < waveguideLayers; i++)
+	{
+		double wy = waveguidePosition[i];
+		double n = waveguideRefractiveIndex[i];
+
+		Object* obj = new Object();
+
+		std::cout << "wy : " << wy << " n : "<< n << std::endl;
+
+		obj->AddSegment(startX, wy, endX, wy, n);
+
+		scene.AddObject(obj);
+	}
+
+	std::vector<double> qdPositionsX = linspace(startX, endX, QDs + 2);
+
+	for (int i = 1; i < qdPositionsX.size() - 1; i++)
+	{
+		double ox = qdPositionsX[i];
+		double oy = -100;
+
+		double ax = startX;
+		double ay = 0;
+
+		double bx = endX;
+		double by = 0;
+
+		scene.AddRaySource(new ConeLight(ox, oy, ax, ay, bx, by, 1000, 1.41));
+	}
+
+	std::cout << "Render" << std::endl;
+	scene.Render();
+}
 
 void QDInternalWaveUnitCell(int QDs)
 {
@@ -100,7 +162,7 @@ void QDInternalWaveUnitCell(int QDs)
 	double endY = 0.0;
 	double depth = -200.0;
 
-	scene.AddObject(new Wave(startX, startY, endX, endY, 1000, [](double x, double y) { return 1.1; }, A, B, C, D));
+	scene.AddObject(new Wave(startX, startY, endX, endY, 1000, [](double x, double y) { return 1.0; }, A, B, C, D));
 	scene.AddObject(new Mirror(startX, startY, startX, depth));
 	scene.AddObject(new Mirror(endX, startY, endX, depth));
 	scene.AddObject(new Target(startX, depth, endX, depth));
@@ -110,7 +172,7 @@ void QDInternalWaveUnitCell(int QDs)
 	for (int i = 1; i < qdPositionsX.size()-1; i++)
 	{
 		scene.AddObject(new QuantumDot(qdPositionsX[i], -100, qdRadius, 1000));
-		scene.AddRaySource(new PointSource(qdPositionsX[i], -100, 1000));
+		scene.AddRaySource(new PointSource(qdPositionsX[i], -100, 1000, 1.41));
 	}
 
 	std::cout << "Render" << std::endl;
@@ -146,15 +208,20 @@ void CaptureTest()
 int main()
 {
 	//CaptureTest();
-	QDInternalWaveUnitCell(1);
-	QDInternalWaveUnitCell(2);
-	QDInternalWaveUnitCell(3);
-	QDInternalWaveUnitCell(4);
+	//QDInternalWaveUnitCell(1);
+	//QDInternalWaveUnitCell(2);
+	//QDInternalWaveUnitCell(3);
+	//QDInternalWaveUnitCell(4);
 
-	ConeWaveUnitCell(1);
-	ConeWaveUnitCell(2);
-	ConeWaveUnitCell(3);
-	ConeWaveUnitCell(4);
+	//ConeWaveUnitCell(1);
+	//ConeWaveUnitCell(2);
+	//ConeWaveUnitCell(3);
+	//ConeWaveUnitCell(4);
+
+	ConeWaveguideUnitCell(1, 2);
+	ConeWaveguideUnitCell(1, 3);
+	ConeWaveguideUnitCell(1, 4);
+	ConeWaveguideUnitCell(1, 5);
 
 	std::cout << "Press ENTER to exit...";
 	std::cin.get();
