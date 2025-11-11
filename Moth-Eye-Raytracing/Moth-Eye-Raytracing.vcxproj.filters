@@ -10,6 +10,9 @@
     <Filter Include="RaySource">
       <UniqueIdentifier>{b8336163-851b-4fe2-930f-1796b7084f4e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Python">
+      <UniqueIdentifier>{50e2f0ad-85a7-467b-bec8-e44e8302cb32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Object.h">
@@ -39,6 +42,12 @@
     <ClInclude Include="RayHit.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="RaySource.h">
+      <Filter>RaySource</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>RaySource</Filter>
+    </ClInclude>
+    <ClInclude Include="ConeLight.h">
       <Filter>RaySource</Filter>
     </ClInclude>
   </ItemGroup>
