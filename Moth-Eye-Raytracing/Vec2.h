@@ -39,6 +39,22 @@ public:
 		Y /= length;
 	}
 
+	Vec2 GetNormal(bool left = true)
+	{
+		if (left)
+		{
+			Vec2 normal = Vec2(-Y, X);
+			normal.Normalize();
+			return normal;
+		}
+		else
+		{
+			Vec2 normal = Vec2(Y, -X);
+			normal.Normalize();
+			return normal;
+		}
+	}
+
 	Vec2 operator+(const Vec2& o) const
 	{
 		return { X + o.X, Y + o.Y };
