@@ -2,6 +2,7 @@
 #include "Segment.h"
 #include <vector>
 #include <random>
+#include <iostream>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -110,10 +111,24 @@ protected:
 
 		Vec2 normal = segment->GetNormal();
 
+		normal.Normalize();
+		ray->Direction.Normalize();
+
 		double incidentCos = -normal.Dot(ray->Direction);
+
+		if (incidentCos < 0)
+		{
+			normal = normal * -1;
+			incidentCos = -incidentCos;
+		}
+
 		double incidentSin = std::sqrt(std::max(0.0, 1.0 - incidentCos * incidentCos));
 
 		double transmitSin = (n1 / n2) * incidentSin;
+
+		if (transmitSin >= 1.0)
+			return FresnelCoeffs{ 1.0, 0.0 };
+
 		double transmitCos = std::sqrt(std::max(0.0, 1.0 - transmitSin * transmitSin));
 
 		double n1ICos = n1 * incidentCos;
@@ -151,6 +166,12 @@ protected:
 
 		double R = 0.5 * (Rs + Rp);
 		double T = 1 - R;
+
+		if (R > 1.0)
+			std::cout << "Warning: Reflectance > 1.0 :" << R << std::endl;
+
+		if (T < 0.0)
+			std::cout << "Warning: Transmittance < 0.0 : " << T << std::endl;
 
 		return FresnelCoeffs{ R, T };
 	}
