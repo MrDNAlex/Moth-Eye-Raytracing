@@ -40,7 +40,7 @@ void CaptureTest()
 	//scene.AddRay(Ray(2.0, 0.0, -1.0, -1.0));
 	//scene.AddRay(Ray(3.0, 0.0, 1.0, -1.0));
 
-	PointSource source = PointSource(0, 0, 200);
+	PointSource source = PointSource(0, 0, 10000);
 
 	scene.AddRays(source.GenerateRays());
 	std::cout << "Render" << std::endl;
