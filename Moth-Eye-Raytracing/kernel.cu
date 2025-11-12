@@ -218,6 +218,22 @@ void MaxCaptureAngleWaveguide(int waveguideLayers, int numberOfAngles, double en
 	file.close();
 }
 
+void RunMaxCaptureAngleWaveguide()
+{
+	std::vector<double> waveGuides = { 2, 3, 4, 5 , 6, 7, 8, 9, 10 };
+	std::vector<double> waveGuides1 = linspace(10, 250, 24);
+
+	double maxAngle = 90.0;
+
+	waveGuides.insert(waveGuides.end(), waveGuides1.begin(), waveGuides1.end());
+
+	for (int i = 0; i < waveGuides.size(); i++)
+	{
+		int layers = (int)waveGuides[i];
+		MaxCaptureAngleWaveguide(layers, 1000, maxAngle);
+	}
+}
+
 void ConeWaveguideUnitCell(int QDs, int waveguideLayers)
 {
 	std::string name = "Cone" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "UnitCell";
@@ -251,23 +267,6 @@ void ConeWaveguideUnitCell(int QDs, int waveguideLayers)
 	scene.Render();
 }
 
-void RunMaxCaptureAngleWaveguide()
-{
-	std::vector<double> waveGuides = { 2, 3, 4, 5 , 6, 7, 8, 9, 10 };
-	std::vector<double> waveGuides1 = linspace(10, 250, 24);
-
-	double maxAngle = 90.0;
-
-	waveGuides.insert(waveGuides.end(), waveGuides1.begin(), waveGuides1.end());
-
-	for (int i = 0; i < waveGuides.size(); i++)
-	{
-		int layers = (int)waveGuides[i];
-		MaxCaptureAngleWaveguide(layers, 1000, maxAngle);
-	}
-}
-
-
 void CaptureTest()
 {
 	Scene scene = Scene("CaptureTest");
@@ -280,11 +279,6 @@ void CaptureTest()
 	scene.AddObject(new Wave(-10, -5.5, 10, -5.5, 100, [](double x, double y) { return 1.2; }));
 	scene.AddObject(new Wave(-10, -6, 10, -6, 100, [](double x, double y) { return 1.3; }));
 	scene.AddObject(new Wave(-10, -6.5, 10, -6.5, 100, [](double x, double y) { return 1.4; }));
-	//scene.AddObject(new QuantumDot(-3, 3, 3, 100));
-	//scene.AddObject(new QuantumDot(3, 3, 3, 100));
-
-	//PointSource source = PointSource(0, 0, 1000);
-	//DirectionalLight light = DirectionalLight(0.0, 0.0, 5.0, 5.0, 1000);
 
 	scene.AddRaySource(new ConeLight(0.0, 0.0, -1, 0, 0, -1, 1000));
 
@@ -313,9 +307,6 @@ int main()
 
 
 	RunMaxCaptureAngleWaveguide();
-	//MaxCaptureAngleWaveguide(3, 3);
-	//MaxCaptureAngleWaveguide(4, 3);
-	//MaxCaptureAngleWaveguide(5, 3);
 
 	std::cout << "Press ENTER to exit...";
 	std::cin.get();
