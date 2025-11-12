@@ -13,19 +13,36 @@ public:
 
 	struct SceneStats
 	{
+	public:
 		int StartRays;
-		float StartPower;
+		double StartPower;
 
 		int LostRays;
 		int DestroyedRays;
-		float LostPower;
-		float DestroyedPower;
+		double LostPower;
+		double DestroyedPower;
+
+		int CapturedRays()
+		{
+			return StartRays - LostRays - DestroyedRays;
+		}
+
+		double CapturedPower()
+		{
+			return StartPower - LostPower - DestroyedPower;
+		}
 
 		json ToJSON()
 		{
 			json j;
 			j["StartRays"] = StartRays;
 			j["StartPower"] = StartPower;
+			j["LostRays"] = LostRays;
+			j["DestroyedRays"] = DestroyedRays;
+			j["LostPower"] = LostPower;
+			j["DestroyedPower"] = DestroyedPower;
+			j["CapturedRays"] = CapturedRays();
+			j["CapturedPower"] = CapturedPower();
 			return j;
 		}
 	};
@@ -103,11 +120,12 @@ public:
 		std::cout << "Finished Initializing Scene" << std::endl;
 	}
 
-	void Render()
+	void Render(bool saveJSON = true, bool debug = true)
 	{
 		this->Initialize();
 
-		std::cout << "Rendering Scene" << std::endl;
+		if (debug)
+			std::cout << "Rendering Scene" << std::endl;
 
 		int index = 0;
 
@@ -130,7 +148,8 @@ public:
 					newRays.insert(newRays.end(), traveledRays.begin(), traveledRays.end());
 			}
 
-			std::cout << "Rendered Frame " << index << ": " << this->Rays.size() << " Rays, " << frame.DestroyedRays << " Destroyed, " << frame.LostRays << " Lost" << std::endl;
+			if (debug)
+				std::cout << "Rendered Frame " << index << ": " << this->Rays.size() << " Rays, " << frame.DestroyedRays << " Destroyed, " << frame.LostRays << " Lost" << std::endl;
 
 			AddFrame(frame);
 			this->Rays = newRays;
@@ -141,9 +160,14 @@ public:
 
 		AddFrame(frame);
 
-		std::cout << "Rendering Complete" << std::endl;
-		std::cout << "Saving..." << std::endl;
+		if (debug)
+			std::cout << "Rendering Complete" << std::endl;
 
+		if (!saveJSON)
+			return;
+
+		std::cout << "Saving..." << std::endl;
+		
 		json j;
 
 		j["Stats"] = Stats.ToJSON();
