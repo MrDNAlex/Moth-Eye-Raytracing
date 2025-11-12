@@ -14,13 +14,13 @@ public:
 	struct SceneStats
 	{
 	public:
-		int StartRays;
-		double StartPower;
+		int StartRays = 0;
+		double StartPower = 0.0;
 
-		int LostRays;
-		int DestroyedRays;
-		double LostPower;
-		double DestroyedPower;
+		int LostRays = 0;
+		int DestroyedRays = 0;
+		double LostPower = 0.0;
+		double DestroyedPower = 0.0;
 
 		int CapturedRays()
 		{
@@ -120,7 +120,7 @@ public:
 		std::cout << "Finished Initializing Scene" << std::endl;
 	}
 
-	void Render(bool saveJSON = true, bool debug = true)
+	void Render(bool saveJSON = true, bool debug = true, bool saveAnimation = true)
 	{
 		this->Initialize();
 
@@ -163,6 +163,15 @@ public:
 		if (debug)
 			std::cout << "Rendering Complete" << std::endl;
 
+		//Getting Stats
+		for (int i = 0; i < this->Frames.size(); i++)
+		{
+			Stats.LostRays += this->Frames[i].LostRays;
+			Stats.DestroyedRays += this->Frames[i].DestroyedRays;
+			Stats.LostPower += this->Frames[i].LostPower;
+			Stats.DestroyedPower += this->Frames[i].DestroyedPower;
+		}
+
 		if (!saveJSON)
 			return;
 
@@ -173,13 +182,19 @@ public:
 		j["Stats"] = Stats.ToJSON();
 
 		j["Geometry"] = json::array();
-		j["Frames"] = json::array();
 
 		for (Object* object : this->Objects)
 			j["Geometry"].push_back(object->ToJSON());
 
-		for (Frame& frame : this->Frames)
-			j["Frames"].push_back(frame.ToJSON());
+		if (saveAnimation)
+		{
+			j["Frames"] = json::array();
+
+			for (Frame& frame : this->Frames)
+				j["Frames"].push_back(frame.ToJSON());
+		}
+		else
+			j["Frames"].push_back(this->Frames[0].ToJSON());
 
 		std::cout << "Converted To JSON, Dumping..." << std::endl;
 
@@ -198,6 +213,7 @@ public:
 		if (ray->DestroyRay())
 		{
 			frame->DestroyedRays += 1;
+			frame->DestroyedPower += ray->Power;
 			return std::vector<Ray>();
 		}
 			
@@ -220,6 +236,7 @@ public:
 		if (closestSegment == nullptr || closestObject == nullptr)
 		{
 			frame->LostRays += 1;
+			frame->LostPower += ray->Power;
 			return std::vector<Ray>();
 		}
 			
