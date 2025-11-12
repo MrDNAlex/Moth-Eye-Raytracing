@@ -30,7 +30,25 @@ std::vector<double> linspace(double start, double end, int num) {
 	return result;
 }
 
-Scene CreateWaveguideBlock(std::string name, int waveguideLayers, double startX = -10000.0, double endX = 10000.0)
+double MothEyeRefractiveIndex(double height)
+{
+	double A = 1.41225607;
+	double B = 0.00122535861;
+	double C = 0.0000549792342;
+	double D = 0.000000982578598;
+	double E = 0.00000000532593744;
+	double F = 0.00000000000920959868;
+
+	double h = height;
+	double h2 = h * h;
+	double h3 = h2 * h;
+	double h4 = h3 * h;
+	double h5 = h4 * h;
+
+	return A - B * h + C * h2 - D * h3 + E * h4 - F * h5;
+}
+
+Scene CreateWaveguideBlock(std::string name, int waveguideLayers, double startX = -10000.0, double endX = 10000.0, bool useMothEyeIndex = false)
 {
 	Scene scene = Scene(name);
 
@@ -60,6 +78,9 @@ Scene CreateWaveguideBlock(std::string name, int waveguideLayers, double startX 
 	{
 		double wy = waveguidePosition[i];
 		double n = waveguideRefractiveIndex[i];
+
+		if (useMothEyeIndex)
+			n = MothEyeRefractiveIndex(mothEyeHeight - wy);
 
 		Object* obj = new Object();
 
@@ -164,7 +185,7 @@ void ConeWaveUnitCell(int QDs)
 // Moth Eye Waveguide Section
 //
 
-void MaxCaptureAngleWaveguide(int waveguideLayers, int numberOfAngles, double endAngle)
+void MaxCaptureAngleWaveguide(int waveguideLayers, int numberOfAngles, double endAngle, bool useMothEyeIndex = false)
 {
 	double startX = -10000.0;
 	double endX = 10000.0;
@@ -190,7 +211,7 @@ void MaxCaptureAngleWaveguide(int waveguideLayers, int numberOfAngles, double en
 
 		std::string name = "MaxCaptureAngleWaveguide" + std::to_string(waveguideLayers) + "Angle" + std::to_string(angle).substr(6);
 
-		Scene scene = CreateWaveguideBlock(name, waveguideLayers, startX, endX);
+		Scene scene = CreateWaveguideBlock(name, waveguideLayers, startX, endX, useMothEyeIndex);
 
 		scene.AddObject(new Mirror(startX, 1400.0, startX, 0));
 		scene.AddObject(new Mirror(endX, 1400.0, endX, 0));
@@ -213,7 +234,12 @@ void MaxCaptureAngleWaveguide(int waveguideLayers, int numberOfAngles, double en
 		}
 	}
 
-	std::ofstream file("MaxCaptureAngleWaveguide" + std::to_string(waveguideLayers) + ".json");
+	std::string name = "MaxCaptureAngleWaveguide" + std::to_string(waveguideLayers);
+
+	if (useMothEyeIndex)
+		name += "_MothEye";
+
+	std::ofstream file(name + ".json");
 	file << js.dump(2);
 	file.close();
 }
@@ -223,31 +249,36 @@ void RunMaxCaptureAngleWaveguide()
 	std::vector<double> waveGuides = { 2, 3, 4, 5 , 6, 7, 8, 9, 10 };
 	std::vector<double> waveGuides1 = linspace(10, 250, 24);
 
-	double maxAngle = 90.0;
-
 	waveGuides.insert(waveGuides.end(), waveGuides1.begin(), waveGuides1.end());
+
+	double maxAngle = 90.0;
 
 	for (int i = 0; i < waveGuides.size(); i++)
 	{
 		int layers = (int)waveGuides[i];
-		MaxCaptureAngleWaveguide(layers, 1000, maxAngle);
+		MaxCaptureAngleWaveguide(layers, 1000, maxAngle, false);
+		MaxCaptureAngleWaveguide(layers, 1000, maxAngle, true);
 	}
 }
 
-void ConeWaveguideUnitCell(int QDs, int waveguideLayers)
+void ConeWaveguide(int QDs, int waveguideLayers, int raysPerCone = 1000, bool useMothEyeIndex = false)
 {
-	std::string name = "Cone" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "UnitCell";
-
-	double startX = -10000.0;
-	double endX = 10250.0;
-
-	Scene scene = CreateWaveguideBlock(name, waveguideLayers, startX, endX);
-
 	//Constants
-	double qdRadius = 10.0;
+	double startX = -10000.0;
+	double endX = 10000.0;
+	double QDStartX = -125.0;
+	double QDEndX = 125.0;
+	double qdRadius = 5.0;
 	double mothEyeHeight = 250.0;
 
-	std::vector<double> qdPositionsX = linspace(startX, endX, QDs + 2);
+	std::string name = "Cone" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "Large";
+
+	if (useMothEyeIndex)
+		name += "_MothEye";
+
+	Scene scene = CreateWaveguideBlock(name, waveguideLayers, startX, endX, useMothEyeIndex);
+
+	std::vector<double> qdPositionsX = linspace(QDStartX, QDEndX, QDs + 2);
 
 	for (int i = 1; i < qdPositionsX.size() - 1; i++)
 	{
@@ -260,11 +291,152 @@ void ConeWaveguideUnitCell(int QDs, int waveguideLayers)
 		double bx = endX;
 		double by = 0;
 
-		scene.AddRaySource(new ConeLight(ox, oy, ax, ay, bx, by, 10, 1.41));
+		scene.AddRaySource(new ConeLight(ox, oy, ax, ay, bx, by, raysPerCone, 1.41));
 	}
 
 	std::cout << "Render" << std::endl;
-	scene.Render();
+	scene.Render(true, true, false);
+}
+
+void ConeWaveguideUnitCell(int QDs, int waveguideLayers, int raysPerCone = 1000, bool useMothEyeIndex = false)
+{
+	//Constants
+	double startX = -125.0;
+	double endX = 125.0;
+	double QDStartX = -125.0;
+	double QDEndX = 125.0;
+	double qdRadius = 5.0;
+	double mothEyeHeight = 250.0;
+
+	std::string name = "Cone" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "UnitCell";
+
+	if (useMothEyeIndex)
+		name += "_MothEye";
+
+	Scene scene = CreateWaveguideBlock(name, waveguideLayers, startX, endX, useMothEyeIndex);
+
+	std::vector<double> qdPositionsX = linspace(QDStartX, QDEndX, QDs + 2);
+
+	for (int i = 1; i < qdPositionsX.size() - 1; i++)
+	{
+		double ox = qdPositionsX[i];
+		double oy = -100;
+
+		double ax = startX;
+		double ay = 0;
+
+		double bx = endX;
+		double by = 0;
+
+		scene.AddRaySource(new ConeLight(ox, oy, ax, ay, bx, by, raysPerCone, 1.41));
+	}
+
+	std::cout << "Render" << std::endl;
+	scene.Render(true, true, false);
+}
+
+void QDWaveguideUnitCell(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMothEyeIndex = false)
+{
+	//Constants
+	double startX = -125.0;
+	double endX = 125.0;
+	double QDStartX = -125.0;
+	double QDEndX = 125.0;
+	double qdRadius = 5.0;
+	double mothEyeHeight = 250.0;
+	int QDResolution = 10000;
+
+	std::string name = "QD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "UnitCell";
+
+	if (useMothEyeIndex)
+		name += "_MothEye";
+
+	Scene scene = CreateWaveguideBlock(name, waveguideLayers, startX, endX, useMothEyeIndex);
+
+	std::vector<double> qdPositionsX = linspace(QDStartX, QDEndX, QDs + 2);
+
+	for (int i = 1; i < qdPositionsX.size() - 1; i++)
+	{
+		double ox = qdPositionsX[i];
+		double oy = -100;
+
+		double ax = startX;
+		double ay = 0;
+
+		double bx = endX;
+		double by = 0;
+
+		scene.AddObject(new QuantumDot(ox, oy, qdRadius, QDResolution));
+		scene.AddRaySource(new PointSource(ox, oy, raysPerQD, 1.41));
+	}
+
+	std::cout << "Render" << std::endl;
+	scene.Render(true, true, false);
+}
+
+void QDWaveguide(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMothEyeIndex = false)
+{
+	//Constants
+	double startX = -10000.0;
+	double endX = 10000.0;
+	double QDStartX = -125.0;
+	double QDEndX = 125.0;
+	double qdRadius = 5.0;
+	double mothEyeHeight = 250.0;
+	int QDResolution = 10000;
+
+	std::string name = "QD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "Large";
+
+	if (useMothEyeIndex)
+		name += "_MothEye";
+
+	Scene scene = CreateWaveguideBlock(name, waveguideLayers, startX, endX, useMothEyeIndex);
+
+	std::vector<double> qdPositionsX = linspace(QDStartX, QDEndX, QDs + 2);
+
+	for (int i = 1; i < qdPositionsX.size() - 1; i++)
+	{
+		double ox = qdPositionsX[i];
+		double oy = -100;
+
+		double ax = startX;
+		double ay = 0;
+
+		double bx = endX;
+		double by = 0;
+
+		scene.AddObject(new QuantumDot(ox, oy, qdRadius, QDResolution));
+		scene.AddRaySource(new PointSource(ox, oy, raysPerQD, 1.41));
+	}
+
+	std::cout << "Render" << std::endl;
+	scene.Render(true, true, false);
+}
+
+void RunQDInternalReflection()
+{
+	int rays = 1000;
+
+	std::vector<double> waveGuides = { 2, 3, 4, 5 , 6, 7, 8, 9, 10 };
+	std::vector<double> waveGuides1 = linspace(10, 250, 24);
+
+	waveGuides.insert(waveGuides.end(), waveGuides1.begin(), waveGuides1.end());
+
+	for (int QDs = 1; QDs <= 20; QDs++)
+	{
+		for (int i = 0; i < waveGuides.size(); i++)
+		{
+			int layers = (int)waveGuides[i];
+			QDWaveguide(QDs, layers, rays, false);
+			QDWaveguide(QDs, layers, rays, true);
+			QDWaveguideUnitCell(QDs, layers, rays, false);
+			QDWaveguideUnitCell(QDs, layers, rays, true);
+			ConeWaveguide(QDs, layers, rays, false);
+			ConeWaveguide(QDs, layers, rays, true);
+			ConeWaveguideUnitCell(QDs, layers, rays, false);
+			ConeWaveguideUnitCell(QDs, layers, rays, true);
+		}
+	}
 }
 
 void CaptureTest()
@@ -295,18 +467,10 @@ int main()
 	//QDInternalWaveUnitCell(3);
 	//QDInternalWaveUnitCell(4);
 
-	//ConeWaveUnitCell(1);
-	//ConeWaveUnitCell(2);
-	//ConeWaveUnitCell(3);
-	//ConeWaveUnitCell(4);
+	// Functions to Run
 
-	//ConeWaveguideUnitCell(1, 2);
-	//ConeWaveguideUnitCell(1, 3);
-	//ConeWaveguideUnitCell(1, 4);
-	//ConeWaveguideUnitCell(1, 5);
-
-
-	RunMaxCaptureAngleWaveguide();
+	//RunMaxCaptureAngleWaveguide()
+	RunQDInternalReflection();
 
 	std::cout << "Press ENTER to exit...";
 	std::cin.get();
