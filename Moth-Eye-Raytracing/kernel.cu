@@ -233,19 +233,13 @@ void MaxCaptureAngleWaveguide(int waveguideLayers, int numberOfAngles, double en
 
 		scene.AddRaySource(new DirectionalLight(xStart, yStart, 9900, 300, 1));
 
-		std::cout << "Rendering : " << name << "... ";
-
 		scene.Render(false, false, false);
-
-		std::cout << "Render Complete" << std::endl;
 
 		for (int j = 0; j < scene.Objects.size(); j++)
 		{
 			if (scene.Objects[j]->Type == "Target")
 			{
 				Target* target = static_cast<Target*>(scene.Objects[j]);
-
-				std::cout << "Angle : " << angle << " Captured Power : " << target->CapturedPower << std::endl;
 
 				js["Power"].push_back(target->CapturedPower / (double)scene.Stats.StartRays);
 				js["Angle"].push_back(angle);
@@ -281,6 +275,8 @@ void RunMaxCaptureAngleWaveguide()
 		MaxCaptureAngleWaveguide(layers, numberOfAngles, maxAngle1, true);
 		MaxCaptureAngleWaveguide(layers, numberOfAngles, maxAngle2, false);
 		MaxCaptureAngleWaveguide(layers, numberOfAngles, maxAngle2, true);
+
+		std::cout << "Completed Max Capture Layers : " << layers << " Completion : " << 100.0 * (double)i / (double)waveGuides.size() << "%" << std::endl;
 	}
 }
 
