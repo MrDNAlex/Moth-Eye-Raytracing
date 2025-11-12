@@ -399,7 +399,7 @@ void QDWaveguide(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMot
 	double QDStartX = -125.0;
 	double QDEndX = 125.0;
 	double qdRadius = 5.0;
-	int QDResolution = 10000;
+	int QDResolution = 4000;
 
 	std::string name = "QD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "Large";
 
@@ -506,7 +506,7 @@ void RealLifeTest(int QDs, int waveguideLayers, double angle, int raysPerQD = 10
 	double endX = 10000.0;
 	double qdRadius = 5.0;
 	double sourceHeight = 300.0;
-	int QDResolution = 10000;
+	int QDResolution = 4000;
 
 	std::string name = "RealLifeQD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "Angle" + std::to_string(angle) + "UnitCell";
 

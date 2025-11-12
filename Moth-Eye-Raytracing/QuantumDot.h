@@ -38,7 +38,7 @@ public:
 
 		ray->Origin = newOrigin;
 		ray->Direction = normal;
-		ray->CurrentBounce = 0;
+		//ray->CurrentBounce = 0;
 
 		std::vector<Ray> rays = std::vector<Ray>();
 		rays.push_back(*ray);

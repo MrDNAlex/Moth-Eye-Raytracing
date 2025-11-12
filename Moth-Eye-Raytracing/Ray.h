@@ -22,7 +22,7 @@ public:
 
 	double OriginalPower;
 
-	Ray(double ox, double oy, double dx, double dy, int currentBounce = 0, double power = 1.0, int maxBounce = 20000, double currentMedium=1.0) : Origin(ox, oy), Direction(dx, dy)
+	Ray(double ox, double oy, double dx, double dy, int currentBounce = 0, double power = 1.0, int maxBounce = 5000, double currentMedium=1.0) : Origin(ox, oy), Direction(dx, dy)
 	{
 		this->Direction.Normalize();
 		this->CurrentMedium = currentMedium;

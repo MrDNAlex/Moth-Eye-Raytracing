@@ -54,6 +54,20 @@ public:
 
 	SceneStats Stats;
 
+	// Non-copyable
+	Scene(const Scene&) = delete;
+	Scene& operator=(const Scene&) = delete;
+
+	// Movable
+	Scene(Scene&&) noexcept = default;
+	Scene& operator=(Scene&&) noexcept = default;
+
+	~Scene() {
+		for (auto* p : Objects)    delete p;
+		for (auto* p : RaySources) delete p;
+		// Rays and Frames are values => auto-freed
+	}
+
 	Scene(std::string fileName)
 	{
 		this->Objects = std::vector<Object*>();
