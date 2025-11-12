@@ -186,7 +186,7 @@ void ConeWaveUnitCell(int QDs, int rays)
 
 void RunWaveCalculations()
 {
-	int rays = 10000;
+	int rays = 5000;
 
 	for (int QDs = 1; QDs <= 20; QDs++)
 	{
@@ -364,7 +364,7 @@ void QDWaveguideUnitCell(int QDs, int waveguideLayers, int raysPerQD = 1000, boo
 	double QDStartX = -125.0;
 	double QDEndX = 125.0;
 	double qdRadius = 5.0;
-	int QDResolution = 2000;
+	int QDResolution = 500;
 
 	std::string name = "QD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "UnitCell";
 
@@ -399,7 +399,7 @@ void QDWaveguide(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMot
 	double QDStartX = -125.0;
 	double QDEndX = 125.0;
 	double qdRadius = 5.0;
-	int QDResolution = 4000;
+	int QDResolution = 500;
 
 	std::string name = "QD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "Large";
 
@@ -428,7 +428,7 @@ void QDWaveguide(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMot
 
 void RunQDInternalReflection()
 {
-	int rays = 10000;
+	int rays = 250;
 
 	std::vector<double> waveGuides = { 2, 4, 6, 8, 10 };
 	std::vector<double> waveGuides1 = linspace(10, 250, 12);
@@ -461,7 +461,7 @@ void RealLifeTestUnitCell(int QDs, int waveguideLayers, double angle, int raysPe
 	double endX = 125.0;
 	double qdRadius = 5.0;
 	double sourceHeight = 300.0;
-	int QDResolution = 2000;
+	int QDResolution = 250;
 
 	std::string name = "RealLifeQD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "Angle" + std::to_string(angle) + "UnitCell";
 
@@ -506,7 +506,7 @@ void RealLifeTest(int QDs, int waveguideLayers, double angle, int raysPerQD = 10
 	double endX = 10000.0;
 	double qdRadius = 5.0;
 	double sourceHeight = 300.0;
-	int QDResolution = 4000;
+	int QDResolution = 250;
 
 	std::string name = "RealLifeQD" + std::to_string(QDs) + "Waveguide" + std::to_string(waveguideLayers) + "Angle" + std::to_string(angle) + "UnitCell";
 
@@ -546,11 +546,11 @@ void RealLifeTest(int QDs, int waveguideLayers, double angle, int raysPerQD = 10
 
 void RunRealLifeTests()
 {
-	int rays = 10000;
+	int rays = 250;
 
-	std::vector<double> angles = linspace(0.0, 80.0, 8);
+	std::vector<double> angles = linspace(0.0, 80.0, 4);
 	std::vector<double> waveGuides = { 2, 4, 6, 8, 10 };
-	std::vector<double> waveGuides1 = linspace(10, 250, 12);
+	std::vector<double> waveGuides1 = linspace(10, 250, 10);
 
 	waveGuides.insert(waveGuides.end(), waveGuides1.begin(), waveGuides1.end());
 
@@ -558,7 +558,7 @@ void RunRealLifeTests()
 	{
 		double angle = angles[j];
 
-		for (int QDs = 0; QDs <= 1000; QDs += 50)
+		for (int QDs = 0; QDs <= 500; QDs += 50)
 		{
 			for (int i = 0; i < waveGuides.size(); i++)
 			{
@@ -566,7 +566,7 @@ void RunRealLifeTests()
 				RealLifeTest(QDs, layers, angle, rays);
 				RealLifeTestUnitCell(QDs, layers, angle, rays);
 
-				double percent = 100.0 * (double)(i + waveGuides.size() * ((QDs / 50) + j * 21)) / (double)(waveGuides.size() * 21 * angles.size());
+				double percent = 100.0 * (double)(i + waveGuides.size() * ((QDs / 50) + j * 11)) / (double)(waveGuides.size() * 11 * angles.size());
 
 
 				std::cout << "Completed QDs : " << QDs << " Layers : " << layers << " Completion : " << percent << "%" << std::endl;
@@ -580,10 +580,10 @@ int main()
 {
 	// Functions to Run
 
-	RunMaxCaptureAngleWaveguide();
-	RunQDInternalReflection();
+	//RunMaxCaptureAngleWaveguide();
+	//RunQDInternalReflection();
 	RunRealLifeTests();
-	RunWaveCalculations();
+	//RunWaveCalculations();
 
 	std::cout << "Press ENTER to exit...";
 	std::cin.get();
