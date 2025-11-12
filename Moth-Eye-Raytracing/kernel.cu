@@ -295,7 +295,7 @@ void ConeWaveguide(int QDs, int waveguideLayers, int raysPerCone = 1000, bool us
 	}
 
 	std::cout << "Render" << std::endl;
-	scene.Render(true, true, false);
+	scene.Render(true, false, false);
 }
 
 void ConeWaveguideUnitCell(int QDs, int waveguideLayers, int raysPerCone = 1000, bool useMothEyeIndex = false)
@@ -332,7 +332,7 @@ void ConeWaveguideUnitCell(int QDs, int waveguideLayers, int raysPerCone = 1000,
 	}
 
 	std::cout << "Render" << std::endl;
-	scene.Render(true, true, false);
+	scene.Render(true, false, false);
 }
 
 void QDWaveguideUnitCell(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMothEyeIndex = false)
@@ -371,7 +371,7 @@ void QDWaveguideUnitCell(int QDs, int waveguideLayers, int raysPerQD = 1000, boo
 	}
 
 	std::cout << "Render" << std::endl;
-	scene.Render(true, true, false);
+	scene.Render(true, false, false);
 }
 
 void QDWaveguide(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMothEyeIndex = false)
@@ -410,12 +410,12 @@ void QDWaveguide(int QDs, int waveguideLayers, int raysPerQD = 1000, bool useMot
 	}
 
 	std::cout << "Render" << std::endl;
-	scene.Render(true, true, false);
+	scene.Render(true, false, false);
 }
 
 void RunQDInternalReflection()
 {
-	int rays = 1000;
+	int rays = 10000;
 
 	std::vector<double> waveGuides = { 2, 3, 4, 5 , 6, 7, 8, 9, 10 };
 	std::vector<double> waveGuides1 = linspace(10, 250, 24);
