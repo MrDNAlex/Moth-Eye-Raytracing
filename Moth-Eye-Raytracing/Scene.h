@@ -88,18 +88,22 @@ public:
 		this->RaySources.push_back(source);
 	}
 
-	void Initialize()
+	void Initialize(bool debug)
 	{
-		std::cout << "Initializing Scene" << std::endl;
-
-		std::cout << "Generating Rays from Sources" << std::endl;
+		if (debug)
+		{
+			std::cout << "Initializing Scene" << std::endl;
+			std::cout << "Generating Rays from Sources" << std::endl;
+		}
 
 		for (int i = 0; i < this->RaySources.size(); i++)
 		{
 			RaySource* source = this->RaySources[i];
 			std::vector<Ray> generatedRays = source->GenerateRays();
 			this->AddRays(generatedRays);
-			std::cout << "Generated " << generatedRays.size() << " Rays from Source " << i << std::endl;
+
+			if (debug)
+				std::cout << "Generated " << generatedRays.size() << " Rays from Source " << i << std::endl;
 		}
 
 		double totalPower = 0.0;
@@ -108,16 +112,17 @@ public:
 			this->Rays[i].Index = i;
 			totalPower += this->Rays[i].Power;
 		}
-			
+
 		Stats.StartRays = this->Rays.size();
 		Stats.StartPower = totalPower;
 
-		std::cout << "Finished Initializing Scene" << std::endl;
+		if (debug)
+			std::cout << "Finished Initializing Scene" << std::endl;
 	}
 
 	void Render(bool saveJSON = true, bool debug = true, bool saveAnimation = true)
 	{
-		this->Initialize();
+		this->Initialize(debug);
 
 		if (debug)
 			std::cout << "Rendering Scene" << std::endl;
@@ -181,8 +186,9 @@ public:
 		if (!saveJSON)
 			return;
 
-		std::cout << "Saving..." << std::endl;
-		
+		if (debug)
+			std::cout << "Saving..." << std::endl;
+
 		json j;
 
 		j["Stats"] = Stats.ToJSON();
@@ -202,14 +208,16 @@ public:
 		else
 			j["Frames"].push_back(this->Frames[0].ToJSON());
 
-		std::cout << "Converted To JSON, Dumping..." << std::endl;
+		if (debug)
+			std::cout << "Converted To JSON, Dumping..." << std::endl;
 
 		//Save the File 
 		std::ofstream file(FileName + ".json");
 		file << j.dump(2);  // Pretty Indent of 4 Spaces
 		file.close();
 
-		std::cout << "Render Saved" << std::endl;
+		if (debug)
+			std::cout << "Render Saved" << std::endl;
 	}
 
 	std::vector<Ray> Travel(Ray* ray, Frame* frame)
@@ -222,7 +230,7 @@ public:
 			frame->DestroyedPower += ray->Power;
 			return std::vector<Ray>();
 		}
-			
+
 		double minT = INFINITY;
 		Segment* closestSegment = nullptr;
 		Object* closestObject = nullptr;
@@ -245,7 +253,7 @@ public:
 			frame->LostPower += ray->Power;
 			return std::vector<Ray>();
 		}
-			
+
 		return closestObject->InteractWithRay(closestSegment, ray);
 	}
 };

@@ -20,19 +20,9 @@ public:
 	std::vector<Ray> GenerateRays() override
 	{
 		std::vector<Ray> rays;
-		std::vector<double> xs = std::vector<double>();
-		std::vector<double> ys = std::vector<double>();
+		std::vector<double> xs = linspace(A.X, B.X, NumberOfRays);
+		std::vector<double> ys = linspace(A.Y, B.Y, NumberOfRays);
 		
-		if (A.X > B.X)
-			xs = linspace(B.X, A.X, NumberOfRays);
-		else
-			xs = linspace(A.X, B.X, NumberOfRays);
-
-		if (A.Y > B.Y)
-			ys = linspace(B.Y, A.Y, NumberOfRays);
-		else
-			ys = linspace(A.Y, B.Y, NumberOfRays);
-
 		for (int i = 0; i < NumberOfRays; i++)
 		{
 			Vec2 pointOnLine = Vec2(xs[i], ys[i]);
