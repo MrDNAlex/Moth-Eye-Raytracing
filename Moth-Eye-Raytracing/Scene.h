@@ -7,6 +7,7 @@
 #include "Frame.h"
 #include <fstream>
 #include "RaySource.h"
+#include "Target.h"
 class Scene
 {
 public:
@@ -22,15 +23,9 @@ public:
 		double LostPower = 0.0;
 		double DestroyedPower = 0.0;
 
-		int CapturedRays()
-		{
-			return StartRays - LostRays - DestroyedRays;
-		}
+		int CapturedRays = 0;
 
-		double CapturedPower()
-		{
-			return StartPower - LostPower - DestroyedPower;
-		}
+		double CapturedPower = 0.0;
 
 		json ToJSON()
 		{
@@ -41,8 +36,8 @@ public:
 			j["DestroyedRays"] = DestroyedRays;
 			j["LostPower"] = LostPower;
 			j["DestroyedPower"] = DestroyedPower;
-			j["CapturedRays"] = CapturedRays();
-			j["CapturedPower"] = CapturedPower();
+			j["CapturedRays"] = CapturedRays;
+			j["CapturedPower"] = CapturedPower;
 			return j;
 		}
 	};
@@ -170,6 +165,17 @@ public:
 			Stats.DestroyedRays += this->Frames[i].DestroyedRays;
 			Stats.LostPower += this->Frames[i].LostPower;
 			Stats.DestroyedPower += this->Frames[i].DestroyedPower;
+		}
+
+		for (int j = 0; j < this->Objects.size(); j++)
+		{
+			if (this->Objects[j]->Type == "Target")
+			{
+				Target* target = static_cast<Target*>(this->Objects[j]);
+
+				Stats.CapturedPower += target->CapturedPower;
+				Stats.CapturedRays += target->CapturedRays;
+			}
 		}
 
 		if (!saveJSON)
