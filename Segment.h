@@ -5,6 +5,8 @@
 #include "Ray.h"
 #include "cmath"
 #include <nlohmann/json.hpp>
+#include "PerturbanceGenerator.h"
+#include <iostream>
 using json = nlohmann::json;
 
 class Segment
@@ -15,28 +17,39 @@ public:
 
 	Vec2 B;
 
-	double RefractiveIndex;
+	std::function<double(double)> RefractiveIndexFunction;
 
-	Segment(double x1, double y1, double x2, double y2, double refractiveIndex) : A(x1, y1), B(x2, y2), RefractiveIndex(refractiveIndex)
+	PerturbanceGenerator* PerturbanceGen;
+
+	Segment(double x1, double y1, double x2, double y2, std::function<double(double)> refractiveIndexFunc, PerturbanceGenerator* perturbanceGen) : A(x1, y1), B(x2, y2), RefractiveIndexFunction(refractiveIndexFunc), PerturbanceGen(perturbanceGen)
 	{
 	}
 
-	Vec2 GetNormal(bool left = true)
+	double GetRefractiveIndex(double wavelength)
+	{
+		return RefractiveIndexFunction(wavelength);
+	}
+
+	double GetPerturbance()
+	{
+		return PerturbanceGen->GeneratePerturbance();
+	}
+
+	Vec2 GetNormal(bool left = true, bool perturb = false)
 	{
 		Vec2 dir = B - A;
+		Vec2 normal = Vec2(0, 0);
 
 		if (left)
-		{
-			Vec2 normal = Vec2(-dir.Y, dir.X);
-			normal.Normalize();
-			return normal;
-		}
+			normal = Vec2(-dir.Y, dir.X);
 		else
-		{
-			Vec2 normal = Vec2(dir.Y, -dir.X);
-			normal.Normalize();
-			return normal;
-		}
+			normal = Vec2(dir.Y, -dir.X);
+
+		if (perturb)
+			normal = normal.Rotate(GetPerturbance());
+
+		normal.Normalize();
+		return normal;
 	}
 
 	RayHit Intersect(Ray* ray)
@@ -46,7 +59,8 @@ public:
 		double denom = ray->Direction.Cross(segment);
 
 		if (std::abs(denom) <= EPSILON)
-			return RayHit(false, 0.0, nullptr); // Parallel lines
+			// Parallel lines
+			return RayHit(false, 0.0, nullptr);
 
 		double invDenom = 1.0 / denom;
 		Vec2 aToOrigin = A - ray->Origin;
@@ -55,7 +69,8 @@ public:
 		double s = aToOrigin.Cross(ray->Direction) * invDenom;
 
 		if (t < EPSILON || (s < 0.0 || s > 1.0))
-			return RayHit(false, 0.0, this); // No intersection
+			// No intersection
+			return RayHit(false, 0.0, this);
 
 		return RayHit(true, t, nullptr);
 	}
@@ -67,10 +82,9 @@ public:
 		Vec2 newOrigin = ray->GetIntersectionPosition(hit.Distance);
 
 		Vec2 direction = ray->Direction;
-		Vec2 normal = GetNormal();
+		Vec2 normal = GetNormal(true, true);
 
-		direction.Normalize();
-		normal.Normalize();
+		//direction.Normalize();
 
 		Vec2 newDirection = direction - (normal * 2.0 * direction.Dot(normal));
 
@@ -82,11 +96,11 @@ public:
 	{
 		RayHit hit = Intersect(ray);
 		Vec2 newOrigin = ray->GetIntersectionPosition(hit.Distance);
-		Vec2 normal = GetNormal();
+		Vec2 normal = GetNormal(true, true);
 		Vec2 direction = ray->Direction;
 
 		double n1 = ray->CurrentMedium;
-		double n2 = this->RefractiveIndex;
+		double n2 = GetRefractiveIndex(ray->Wavelength);
 
 		if (direction.Dot(normal) > 0)
 			normal = normal * -1.0;
@@ -97,8 +111,9 @@ public:
 		double transmitSin = (n1 / n2) * incidentSin;
 
 		if (transmitSin >= 1.0)
-			return Reflect(ray); // Total internal reflection
-		
+			// Total internal reflection
+			return Reflect(ray);
+
 		double transmissionCos = std::sqrt(std::max(0.0, 1.0 - transmitSin * transmitSin));
 
 		Vec2 newDirection = direction * (n1 / n2) + normal * ((n1 / n2) * incidentCos - transmissionCos);
@@ -108,12 +123,22 @@ public:
 		ray->Direction = newDirection;
 	}
 
+	double GetCenterX()
+	{
+		return 0.5 * (A.X + B.X);
+	}
+
+	double GetCenterY()
+	{
+		return 0.5 * (A.Y + B.Y);
+	}
+
 	json ToJSON()
 	{
 		json j;
 		j["A"] = A.ToJSON();
 		j["B"] = B.ToJSON();
-		j["RefractiveIndex"] = RefractiveIndex;
+		j["RefractiveIndex"] = GetRefractiveIndex(500);
 		return j;
 	}
 };

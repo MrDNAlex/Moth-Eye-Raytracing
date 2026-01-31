@@ -12,6 +12,12 @@ public:
 
 	double Y;
 
+	Vec2()
+	{
+		this->X = 0.0;
+		this->Y = 0.0;
+	}
+
 	Vec2(double x, double y)
 	{
 		this->X = x;
@@ -28,15 +34,31 @@ public:
 		return X * v2.X + Y * v2.Y;
 	}
 
+	double Magnitude()
+	{
+		return sqrt(MagnitudeSquared());
+	}
+
+	double MagnitudeSquared()
+	{
+		return X * X + Y * Y;
+	}
+
 	void Normalize()
 	{
-		double length = sqrt(X * X + Y * Y);
+		double length = Magnitude();
 
 		if (std::abs(length) < EPSILON)
 			length = EPSILON;
 
 		X /= length;
 		Y /= length;
+	}
+
+	bool IsNormalized()
+	{
+		double lengthSq = MagnitudeSquared();
+		return std::abs(lengthSq - 1.0) < EPSILON;
 	}
 
 	Vec2 GetNormal(bool left = true)
@@ -53,6 +75,20 @@ public:
 			normal.Normalize();
 			return normal;
 		}
+	}
+
+	Vec2 Rotate(double degrees)
+	{
+		double pi = 3.14159265358979323846;
+		double theta = degrees * pi / 180.0;
+
+		double cs = std::cos(theta);
+		double sn = std::sin(theta);
+
+		return Vec2{
+			this->X * cs - this->Y * sn,
+			this->X * sn + this->Y * cs
+		};
 	}
 
 	Vec2 operator+(const Vec2& o) const
