@@ -10,15 +10,21 @@
     <Filter Include="RaySource">
       <UniqueIdentifier>{b8336163-851b-4fe2-930f-1796b7084f4e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Python">
-      <UniqueIdentifier>{50e2f0ad-85a7-467b-bec8-e44e8302cb32}</UniqueIdentifier>
+    <Filter Include="Distributions">
+      <UniqueIdentifier>{7565515f-0931-4db6-aa19-81d1e73e4566}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="WavelengthGenerators">
+      <UniqueIdentifier>{1747d3ef-44ae-44ba-a436-e58f8a106042}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Mirror.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
     <ClInclude Include="Object.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Mirror.h">
+    <ClInclude Include="QuantumDot.h">
       <Filter>Objects</Filter>
     </ClInclude>
     <ClInclude Include="Segment.h">
@@ -30,28 +36,55 @@
     <ClInclude Include="Wave.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="QuantumDot.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="Frame.h" />
-    <ClInclude Include="PointSource.h">
-      <Filter>RaySource</Filter>
-    </ClInclude>
-    <ClInclude Include="Ray.h" />
-    <ClInclude Include="RayHit.h" />
-    <ClInclude Include="Vec2.h" />
-    <ClInclude Include="RaySource.h">
+    <ClInclude Include="ConeLight.h">
       <Filter>RaySource</Filter>
     </ClInclude>
     <ClInclude Include="DirectionalLight.h">
       <Filter>RaySource</Filter>
     </ClInclude>
-    <ClInclude Include="ConeLight.h">
+    <ClInclude Include="PointSource.h">
       <Filter>RaySource</Filter>
     </ClInclude>
+    <ClInclude Include="RaySource.h">
+      <Filter>RaySource</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame.h" />
+    <ClInclude Include="Ray.h" />
+    <ClInclude Include="RayHit.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="Vec2.h" />
+    <ClInclude Include="GaussianDistribution.h" />
+    <ClInclude Include="ObjectBounds.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectNode.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="FYDPSims.h" />
+    <ClInclude Include="Utilities.h" />
+    <ClInclude Include="NE451Sims.h" />
+    <ClInclude Include="ConstantWavelengthGenerator.h">
+      <Filter>WavelengthGenerators</Filter>
+    </ClInclude>
+    <ClInclude Include="AM15GWavelengthGenerator.h">
+      <Filter>WavelengthGenerators</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalWavelengthGenerator.h">
+      <Filter>WavelengthGenerators</Filter>
+    </ClInclude>
+    <ClInclude Include="WavelengthGenerator.h">
+      <Filter>WavelengthGenerators</Filter>
+    </ClInclude>
+    <ClInclude Include="PerturbanceGenerator.h" />
+    <ClInclude Include="ConstantPerturbance.h" />
+    <ClInclude Include="NormalPerturbance.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="AM15_spectrum.json">
+      <Filter>Distributions</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>
