@@ -103,6 +103,7 @@
     <ClInclude Include="RaySource.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Segment.h" />
+    <ClInclude Include="SolcoreSims.h" />
     <ClInclude Include="Target.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="Vec2.h" />
@@ -116,6 +117,9 @@
       <FileType>Document</FileType>
     </CopyFileToFolders>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

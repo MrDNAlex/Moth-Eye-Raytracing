@@ -14,9 +14,9 @@
 #include "DirectionalLight.h"
 #include "ConeLight.h"
 #include "FYDPSims.h"
-#include "NE451Sims.h"
+#include "SolcoreSims.h"
 
-int main()
+int main(int argc, char* argv[])
 {
 	// Functions to Run
 	//RunMaxCaptureAngleWaveguide();
@@ -60,8 +60,9 @@ int main()
 	//	depth++;
 	//}
 
-	RunSimulations();
+	RunSimulations(argc, argv);
 
-	std::cout << "Press ENTER to exit...";
-	std::cin.get();
+	std::cout << "Calculation Complete!" << std::endl;
+	//std::cout << "Press ENTER to exit...";
+	//std::cin.get();
 }
