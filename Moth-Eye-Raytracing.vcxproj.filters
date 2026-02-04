@@ -78,6 +78,7 @@
     <ClInclude Include="PerturbanceGenerator.h" />
     <ClInclude Include="ConstantPerturbance.h" />
     <ClInclude Include="NormalPerturbance.h" />
+    <ClInclude Include="SolcoreSims.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
