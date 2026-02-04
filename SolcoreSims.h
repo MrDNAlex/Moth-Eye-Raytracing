@@ -284,16 +284,19 @@ void RunSimulationCategory1()
 
 	filePath = filePath + "/";
 
-	int numOfRays = 25;
-	int numOfLayers = 250;
+	int numOfRays = 10;
 	int maxAngle = 60;
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 325; //1000
+	int startLayers = 50;
+	int endLayers = 100; //250
+	int layerStepSize = 50;
 
-	int totalRuns = ((maxAngle / angleStep) * (endWavelength - startWavelength) / wavelengthStep + 1);
+	int totalRuns = (((endWavelength - startWavelength) / wavelengthStep) + 1) * (((endLayers - startLayers) / layerStepSize) + 1) * 21;
+
 	int simIndex = 0;
 
 	json j;
@@ -310,26 +313,39 @@ void RunSimulationCategory1()
 
 		CreateFolder(angleFilePath);
 
-		std::vector<std::string> filePaths = std::vector<std::string>();
-
-		for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+		for (int l = startLayers; l <= endLayers; l += layerStepSize)
 		{
-			auto start = std::chrono::high_resolution_clock::now();
+			json j_layers;
 
-			filePaths.push_back(RunWavelengthSweep(angleFilePath, numOfLayers, y, numOfRays, 0, a));
+			std::string layerName = "Layers_" + std::to_string(l);
 
-			simIndex++;
+			std::string layerFilePath = angleFilePath + "/" + layerName;
 
-			double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+			CreateFolder(layerFilePath);
 
-			auto end = std::chrono::high_resolution_clock::now();
+			std::vector<std::string> filePaths = std::vector<std::string>();
 
-			double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+			for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+			{
+				auto start = std::chrono::high_resolution_clock::now();
 
-			std::cout << "Completed Wavelength " << y << " : " << percentComplete << " % " << " (" << timeTakenMS << " ms)" << std::endl;
+				filePaths.push_back(RunWavelengthSweep(layerFilePath, l, y, numOfRays, 0, a));
+
+				simIndex++;
+
+				double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+
+				std::cout << "Completed Wavelength " << y << " : " << percentComplete << " % " << " (" << timeTakenMS << " ms)" << std::endl;
+			}
+
+			j_angle[layerName] = filePaths;
 		}
 
-		j[angleName] = filePaths;
+		j[angleName] = j_angle;
 	}
 
 	std::ofstream file(filePath + "FilePaths.json");
@@ -347,16 +363,18 @@ void RunSimulationCategory2(int angle)
 	filePath = filePath + "/";
 
 	int avg = 3; //10
-	int numOfRays = 50; //100
-	int numOfLayers = 250;
-	int maxPerturbanceDev = 8; //10
+	int numOfRays = 10; //100
+	int maxPerturbanceDev = 10; //10
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 325; //1000
+	int startLayers = 50;
+	int endLayers = 100; //250
+	int layerStepSize = 50;
 
-	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * ((maxPerturbanceDev + 1)/2.0) * avg;
+	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev)/2.0)+1) * avg * (((endLayers - startLayers)/layerStepSize)+1);
 
 	std::cout << "Total Runs : " << totalRuns << std::endl;
 	int simIndex = 0;
@@ -381,36 +399,51 @@ void RunSimulationCategory2(int angle)
 
 		CreateFolder(perturbanceFilePath);
 
-		for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+		for (int l = startLayers; l <= endLayers; l += layerStepSize)
 		{
-			json j_wavelength;
+			json j_layers;
 
-			std::string wavelengthName = "Wavelength_" + std::to_string(y);
+			std::string layerName = "Layers_" + std::to_string(l);
 
-			std::string wavelengthFilePath = perturbanceFilePath + "/" + wavelengthName;
+			std::string layerFilePath = perturbanceFilePath + "/" + layerName;
 
-			CreateFolder(wavelengthFilePath);
+			CreateFolder(layerFilePath);
 
-			std::vector<std::string> filePaths = std::vector<std::string>();
-
-			auto start = std::chrono::high_resolution_clock::now();
-
-			for (int i = 0; i < avg; i++)
+			for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
 			{
-				filePaths.push_back(RunWavelengthSweepWithPerturbance(wavelengthFilePath, numOfLayers, y, numOfRays, i, angle, p));
+				json j_wavelength;
 
-				simIndex++;
+				std::string wavelengthName = "Wavelength_" + std::to_string(y);
+
+				std::string wavelengthFilePath = layerFilePath + "/" + wavelengthName;
+
+				CreateFolder(wavelengthFilePath);
+
+				std::vector<std::string> filePaths = std::vector<std::string>();
+
+				auto start = std::chrono::high_resolution_clock::now();
+
+				for (int i = 0; i < avg; i++)
+				{
+					filePaths.push_back(RunWavelengthSweepWithPerturbance(wavelengthFilePath, l, y, numOfRays, i, angle, p));
+
+					simIndex++;
+				}
+
+				double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+
+				std::cout << "Completed Wavelength " << y << " : " << percentComplete << "%" << " (" << timeTakenMS << " ms)" << std::endl;
+
+				j_layers[wavelengthName] = filePaths;
 			}
 
-			double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+			std::cout << "Completed Layers " << l << std::endl;
 
-			auto end = std::chrono::high_resolution_clock::now();
-
-			double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
-
-			std::cout << "Completed Wavelength " << y << " : " << percentComplete << "%" << " (" << timeTakenMS << " ms)" << std::endl;
-
-			j_perturbance[wavelengthName] = filePaths;
+			j_perturbance[layerName] = j_layers;
 		}
 
 		std::cout << "Completed Perturbance " << p << std::endl;
@@ -433,16 +466,18 @@ void RunSimulationCategory3(int angle)
 	filePath = filePath + "/";
 
 	int avg = 3; //10
-	int numOfRays = 50; //100
-	int numOfLayers = 250;
-	int maxPerturbanceDev = 8; //10
+	int numOfRays = 10; //100
+	int maxPerturbanceDev = 10; //10
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 325; //1000
+	int startLayers = 50;
+	int endLayers = 100; //250
+	int layerStepSize = 50;
 
-	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * ((maxPerturbanceDev + 1) / 2.0) * avg;
+	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev) / 2.0) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
 
 	std::cout << "Total Runs : " << totalRuns << std::endl;
 	int simIndex = 0;
@@ -467,36 +502,51 @@ void RunSimulationCategory3(int angle)
 
 		CreateFolder(perturbanceFilePath);
 
-		for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+		for (int l = startLayers; l <= endLayers; l += layerStepSize)
 		{
-			json j_wavelength;
+			json j_layers;
 
-			std::string wavelengthName = "Wavelength_" + std::to_string(y);
+			std::string layerName = "Layers_" + std::to_string(l);
 
-			std::string wavelengthFilePath = perturbanceFilePath + "/" + wavelengthName;
+			std::string layerFilePath = perturbanceFilePath + "/" + layerName;
 
-			CreateFolder(wavelengthFilePath);
+			CreateFolder(layerFilePath);
 
-			std::vector<std::string> filePaths = std::vector<std::string>();
-
-			auto start = std::chrono::high_resolution_clock::now();
-
-			for (int i = 0; i < avg; i++)
+			for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
 			{
-				filePaths.push_back(RunWavelengthSweepWithWaveWithPerturbance(wavelengthFilePath, numOfLayers, y, numOfRays, i, angle, p));
+				json j_wavelength;
 
-				simIndex++;
+				std::string wavelengthName = "Wavelength_" + std::to_string(y);
+
+				std::string wavelengthFilePath = layerFilePath + "/" + wavelengthName;
+
+				CreateFolder(wavelengthFilePath);
+
+				std::vector<std::string> filePaths = std::vector<std::string>();
+
+				auto start = std::chrono::high_resolution_clock::now();
+
+				for (int i = 0; i < avg; i++)
+				{
+					filePaths.push_back(RunWavelengthSweepWithWaveWithPerturbance(wavelengthFilePath, l, y, numOfRays, i, angle, p));
+
+					simIndex++;
+				}
+
+				double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+
+				std::cout << "Completed Wavelength " << y << " : " << percentComplete << "%" << " (" << timeTakenMS << " ms)" << std::endl;
+
+				j_layers[wavelengthName] = filePaths;
 			}
 
-			double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+			std::cout << "Completed Layers " << l << std::endl;
 
-			auto end = std::chrono::high_resolution_clock::now();
-
-			double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
-
-			std::cout << "Completed Wavelength " << y << " : " << percentComplete << "%" << " (" << timeTakenMS << " ms)" << std::endl;
-
-			j_perturbance[wavelengthName] = filePaths;
+			j_perturbance[layerName] = j_layers;
 		}
 
 		std::cout << "Completed Perturbance " << p << std::endl;
@@ -520,7 +570,7 @@ void RunSimulations(int argc, char* argv[])
 
 	int choice;
 	
-	if (argc >= 1)
+	if (argc >= 2)
 		choice = std::stoi(argv[1]);
 	else
 		std::cin >> choice;
@@ -532,16 +582,16 @@ void RunSimulations(int argc, char* argv[])
 		break;
 
 	case 2:
-		if (argc >= 2)
+		if (argc >= 3)
 			RunSimulationCategory2(std::stoi(argv[2]));
 		else
-			RunSimulationCategory2(0);
+			RunSimulationCategory2(50);
 
 		break;
 
 	case 3:
 
-		if (argc >= 2)
+		if (argc >= 3)
 			RunSimulationCategory3(std::stoi(argv[2]));
 		else
 			RunSimulationCategory3(0);

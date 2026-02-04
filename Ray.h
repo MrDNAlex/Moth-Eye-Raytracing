@@ -43,7 +43,7 @@ public:
 
 	bool DestroyRay()
 	{
-		return this->CurrentBounce > this->MaxBounce || this->Power < 0.005;
+		return this->CurrentBounce > this->MaxBounce || this->Power < 0.00001;
 	}
 
 	Ray Clone()
