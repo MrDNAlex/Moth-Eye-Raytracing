@@ -24,12 +24,12 @@ public:
 		this->Y = y;
 	}
 
-	double Cross(Vec2& v2)
+	double Cross(const Vec2& v2)
 	{
 		return X * v2.Y - Y * v2.X;
 	}
 
-	double Dot(Vec2& v2)
+	double Dot(const Vec2& v2)
 	{
 		return X * v2.X + Y * v2.Y;
 	}

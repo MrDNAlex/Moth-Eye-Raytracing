@@ -38,7 +38,9 @@ public:
 
 		direction.Normalize();
 
-		if (Down && direction.Dot(Vec2(0, -1)) < 0)
+		Vec2 downDir(0, -1);
+
+		if (Down && direction.Dot(downDir) < 0)
 			direction = direction * -1;
 		
 		WavelengthGenerator& wg = *this->WavelengthGen;
