@@ -88,4 +88,7 @@
       <Filter>Distributions</Filter>
     </CopyFileToFolders>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
 </Project>

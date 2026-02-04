@@ -284,7 +284,7 @@ void RunSimulationCategory1()
 
 	filePath = filePath + "/";
 
-	int numOfRays = 100;
+	int numOfRays = 25;
 	int numOfLayers = 250;
 	int maxAngle = 60;
 
@@ -346,10 +346,10 @@ void RunSimulationCategory2(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 5; //10
-	int numOfRays = 100; //100
+	int avg = 3; //10
+	int numOfRays = 50; //100
 	int numOfLayers = 250;
-	int maxPerturbanceDev = 10; //10
+	int maxPerturbanceDev = 8; //10
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
@@ -432,10 +432,10 @@ void RunSimulationCategory3(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 5; //10
-	int numOfRays = 100; //100
+	int avg = 3; //10
+	int numOfRays = 50; //100
 	int numOfLayers = 250;
-	int maxPerturbanceDev = 10; //10
+	int maxPerturbanceDev = 8; //10
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
