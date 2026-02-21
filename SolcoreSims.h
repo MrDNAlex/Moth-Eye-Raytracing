@@ -64,8 +64,12 @@ std::function<double(double)> CreateEffectiveRefractiveIndexFunction(double heig
 	double q = 2.0 / 3.0;
 
 	return [fillFactor, q](double wavelength)
-		{
-			return pow(fillFactor * pow(SellmeierPDMS(wavelength), q) + (1 - fillFactor) * pow(SellmeierAir(wavelength * 0.001), q), 1 / q);
+		{ 
+			double refractiveIndex = pow(fillFactor * pow(SellmeierPDMS(wavelength), q) + (1 - fillFactor) * pow(SellmeierAir(wavelength * 0.001), q), 1 / q);
+
+			//std::cout << "Refractive Index : " << refractiveIndex << " Fill Factor :" << fillFactor << std::endl;
+
+			return refractiveIndex;
 		};
 }
 
@@ -95,6 +99,44 @@ Scene CreateUnitCellWaveguideBlock(std::string name, int waveguideLayers, Pertur
 	double waveguideBottomRightY = 0.0;
 
 	double targetY = -200.0;
+
+	scene.AddObject(new Mirror(waveguideTopLeftX, waveguideTopLeftY, waveguideBottomLeftX, targetY));
+	scene.AddObject(new Mirror(waveguideTopRightX, waveguideTopRightY, waveguideBottomRightX, targetY));
+	scene.AddObject(new Target(waveguideBottomLeftX, targetY, waveguideBottomRightX, targetY));
+
+	std::vector<double> waveguidePosition = linspace(waveguideTopLeftY, waveguideBottomLeftY, waveguideLayers);
+
+	for (int i = 0; i < waveguideLayers; i++)
+	{
+		double wy = waveguidePosition[i];
+		double heightFraction = (mothEyeHeight - wy) / mothEyeHeight;
+
+		Object* obj = new Object();
+
+		obj->AddSegment(startX, wy, endX, wy, CreateEffectiveRefractiveIndexFunction(heightFraction), pertubance);
+
+		scene.AddObject(obj);
+	}
+
+	return scene;
+}
+
+Scene CreateInternalUnitCellWaveguideBlock(std::string name, int waveguideLayers, PerturbanceGenerator* pertubance, double startX = -125, double endX = 125)
+{
+	Scene scene = Scene(name);
+
+	double mothEyeHeight = 250.0;
+
+	double waveguideTopLeftX = startX;
+	double waveguideTopLeftY = 250.0;
+	double waveguideTopRightX = endX;
+	double waveguideTopRightY = 250.0;
+	double waveguideBottomLeftX = startX;
+	double waveguideBottomLeftY = 0.0;
+	double waveguideBottomRightX = endX;
+	double waveguideBottomRightY = 0.0;
+
+	double targetY = 500.0;
 
 	scene.AddObject(new Mirror(waveguideTopLeftX, waveguideTopLeftY, waveguideBottomLeftX, targetY));
 	scene.AddObject(new Mirror(waveguideTopRightX, waveguideTopRightY, waveguideBottomRightX, targetY));
@@ -180,6 +222,46 @@ Scene CreateUnitCellWaveWaveguideBlock(std::string name, int waveguideLayers, Pe
 	return scene;
 }
 
+Scene CreateInternalUnitCellWaveWaveguideBlock(std::string name, int waveguideLayers, PerturbanceGenerator* pertubance, double startX = -125, double endX = 125)
+{
+	Scene scene = Scene(name);
+
+	int waveResolution = 500;
+
+	double mothEyeHeight = 250.0;
+
+	double waveguideTopLeftX = startX;
+	double waveguideTopLeftY = 250.0;
+	double waveguideTopRightX = endX;
+	double waveguideTopRightY = 250.0;
+	double waveguideBottomLeftX = startX;
+	double waveguideBottomLeftY = 0.0;
+	double waveguideBottomRightX = endX;
+	double waveguideBottomRightY = 0.0;
+
+	double targetY = 500.0;
+
+	scene.AddObject(new Mirror(waveguideTopLeftX, waveguideTopLeftY, waveguideBottomLeftX, targetY));
+	scene.AddObject(new Mirror(waveguideTopRightX, waveguideTopRightY, waveguideBottomRightX, targetY));
+	scene.AddObject(new Target(waveguideBottomLeftX, targetY, waveguideBottomRightX, targetY));
+
+	std::vector<double> waveguidePosition = linspace(waveguideTopLeftY, waveguideBottomLeftY, waveguideLayers);
+
+	GaussianDistribution gauss = GaussianDistribution(1.2 * (endX - startX), 0.5 * (endX - startX));
+
+	for (int i = 0; i < waveguideLayers; i++)
+	{
+		double wy = waveguidePosition[i];
+		double heightFraction = (mothEyeHeight - wy) / mothEyeHeight;
+
+		Object* wave = CreateWave(startX, wy, endX, wy, waveResolution, CreateEffectiveRefractiveIndexFunction(heightFraction), pertubance, 1.0, 2.0 * 3.14159265358979323846 / gauss.GetRandomValue(), 0.0, 0.0);
+
+		scene.AddObject(wave);
+	}
+
+	return scene;
+}
+
 std::string RunWavelengthSweep(std::string path, int numOfLayers, double wavelength, int numOfRays, int avgIndex, double angle)
 {
 	double startX = -125.0;
@@ -201,6 +283,33 @@ std::string RunWavelengthSweep(std::string path, int numOfLayers, double wavelen
 	double yStart = sin(radians) * emitterLength + sourceHeight;
 
 	scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0)));
+
+	scene.Render(true, false, false, false, false, path);
+
+	return path + "/" + name;
+}
+
+std::string RunInternalWavelengthSweep(std::string path, int numOfLayers, double wavelength, int numOfRays, int avgIndex, double angle)
+{
+	double startX = -125.0;
+	double endX = 125.0;
+	double sourceHeight = -50.0;
+
+	std::string name = "WavelengthSweep_Wavelength_" + std::to_string(wavelength) + "AVG_" + std::to_string(avgIndex);
+
+	Scene scene = CreateInternalUnitCellWaveguideBlock(name, numOfLayers, new ConstantPerturbance(0), startX, endX);
+
+	scene.AddObject(new Mirror(startX, 500.0, startX, -500.0));
+	scene.AddObject(new Mirror(endX, 500.0, endX, -500.0));
+
+	double pi = 3.14159265358979323846;
+	double radians = angle * pi / 180.0;
+	double emitterLength = (endX - startX) * 0.95;
+
+	double xStart = -(cos(radians) * emitterLength) + endX * 0.95;
+	double yStart = -sin(radians) * emitterLength + sourceHeight;
+
+	scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0), false, 1.41 ));
 
 	scene.Render(true, false, false, false, false, path);
 
@@ -241,6 +350,40 @@ std::string RunWavelengthSweepWithPerturbance(std::string path, int numOfLayers,
 	return path + "/" + name;
 }
 
+std::string RunInternalWavelengthSweepWithPerturbance(std::string path, int numOfLayers, double wavelength, int numOfRays, int avgIndex, double angle, double perturbanceDeviation)
+{
+	double startX = -125.0;
+	double endX = 125.0;
+	double sourceHeight = 300.0;
+
+	std::string name = "WavelengthSweep_Perturbance_" + std::to_string(perturbanceDeviation) + "_Wavelength_" + std::to_string(wavelength) + "_AVG_" + std::to_string(avgIndex);
+
+	PerturbanceGenerator* pertubance = nullptr;
+
+	if (perturbanceDeviation > 0)
+		pertubance = new NormalPerturbance(0, perturbanceDeviation);
+	else
+		pertubance = new ConstantPerturbance(0);
+
+	Scene scene = CreateInternalUnitCellWaveguideBlock(name, numOfLayers, pertubance, startX, endX);
+
+	scene.AddObject(new Mirror(startX, 500.0, startX, -500.0));
+	scene.AddObject(new Mirror(endX, 500.0, endX, -500.0));
+
+	double pi = 3.14159265358979323846;
+	double radians = angle * pi / 180.0;
+	double emitterLength = (endX - startX) * 0.95;
+
+	double xStart = -(cos(radians) * emitterLength) + endX * 0.95;
+	double yStart = -sin(radians) * emitterLength + sourceHeight;
+
+	scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0), false, 1.41));
+
+	scene.Render(true, false, false, false, false, path);
+
+	return path + "/" + name;
+}
+
 std::string RunWavelengthSweepWithWaveWithPerturbance(std::string path, int numOfLayers, double wavelength, int numOfRays, int avgIndex, double angle, double perturbanceDeviation)
 {
 	double startX = -125.0;
@@ -275,6 +418,40 @@ std::string RunWavelengthSweepWithWaveWithPerturbance(std::string path, int numO
 	return path + "/" + name;
 }
 
+std::string RunInternalWavelengthSweepWithWaveWithPerturbance(std::string path, int numOfLayers, double wavelength, int numOfRays, int avgIndex, double angle, double perturbanceDeviation)
+{
+	double startX = -125.0;
+	double endX = 125.0;
+	double sourceHeight = -50.0;
+
+	std::string name = "WavelengthSweep_Perturbance_" + std::to_string(perturbanceDeviation) + "_Wavelength_" + std::to_string(wavelength) + "_AVG_" + std::to_string(avgIndex);
+
+	PerturbanceGenerator* pertubance = nullptr;
+
+	if (perturbanceDeviation > 0)
+		pertubance = new NormalPerturbance(0, perturbanceDeviation);
+	else
+		pertubance = new ConstantPerturbance(0);
+
+	Scene scene = CreateInternalUnitCellWaveWaveguideBlock(name, numOfLayers, pertubance, startX, endX);
+
+	scene.AddObject(new Mirror(startX, 500.0, startX, -500.0));
+	scene.AddObject(new Mirror(endX, 500.0, endX, -500.0));
+
+	double pi = 3.14159265358979323846;
+	double radians = angle * pi / 180.0;
+	double emitterLength = (endX - startX) * 0.95;
+
+	double xStart = -(cos(radians) * emitterLength) + endX * 0.95;
+	double yStart = -sin(radians) * emitterLength + sourceHeight;
+
+	scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0), false, 1.41));
+
+	scene.Render(true, false, false, false, false, path);
+
+	return path + "/" + name;
+}
+
 void RunSimulationCategory1()
 {
 	std::string filePath = "Simulations/Simulation1_WavelengthSweep";
@@ -284,22 +461,24 @@ void RunSimulationCategory1()
 
 	filePath = filePath + "/";
 
-	int numOfRays = 10;
+	int numOfRays = 100;
 	int maxAngle = 60;
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 325; //1000
-	int startLayers = 50;
-	int endLayers = 100; //250
-	int layerStepSize = 50;
+	int endWavelength = 1000; //1000
+	int startLayers = 3;
+	int endLayers = 15; //250
+	int layerStepSize = 2;
 
-	int totalRuns = (((endWavelength - startWavelength) / wavelengthStep) + 1) * (((endLayers - startLayers) / layerStepSize) + 1) * 21;
+	int totalRuns = (((endWavelength - startWavelength) / wavelengthStep) + 1) * (((endLayers - startLayers) / layerStepSize) + 1) * 3;
 
 	int simIndex = 0;
 
 	json j;
+
+	auto startFull = std::chrono::high_resolution_clock::now();
 
 	for (int a = 0; a <= maxAngle; a += angleStep)
 	{
@@ -348,6 +527,10 @@ void RunSimulationCategory1()
 		j[angleName] = j_angle;
 	}
 
+	auto endFull = std::chrono::high_resolution_clock::now();
+	double timeTakenMSFull = std::chrono::duration<double, std::milli>(endFull - startFull).count();
+	std::cout << "Simulations took : " << timeTakenMSFull << " Milliseconds" << std::endl;
+
 	std::ofstream file(filePath + "FilePaths.json");
 	file << j.dump(2);
 	file.close();
@@ -362,19 +545,21 @@ void RunSimulationCategory2(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 3; //10
-	int numOfRays = 10; //100
-	int maxPerturbanceDev = 10; //10
+	int avg = 5; //10
+	int numOfRays = 100; //100
+	int minPerturbamceDev = 10;
+	int maxPerturbanceDev = 20; //10
+	int perturbanceStep = 2;
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 325; //1000
-	int startLayers = 50;
-	int endLayers = 100; //250
-	int layerStepSize = 50;
+	int endWavelength = 1000; //1000
+	int startLayers = 3;
+	int endLayers = 15; //250
+	int layerStepSize = 2;
 
-	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev)/2.0)+1) * avg * (((endLayers - startLayers)/layerStepSize)+1);
+	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbamceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers)/layerStepSize)+1);
 
 	std::cout << "Total Runs : " << totalRuns << std::endl;
 	int simIndex = 0;
@@ -389,7 +574,9 @@ void RunSimulationCategory2(int angle)
 
 	CreateFolder(angleFilePath);
 
-	for (int p = 0; p <= maxPerturbanceDev; p += 2)
+	auto startFull = std::chrono::high_resolution_clock::now();
+
+	for (int p = minPerturbamceDev; p <= maxPerturbanceDev; p += perturbanceStep)
 	{
 		json j_perturbance;
 
@@ -451,6 +638,10 @@ void RunSimulationCategory2(int angle)
 		j_angle[perturbanceName] = j_perturbance;
 	}
 
+	auto endFull = std::chrono::high_resolution_clock::now();
+	double timeTakenMSFull = std::chrono::duration<double, std::milli>(endFull - startFull).count();
+	std::cout << "Simulations took : " << timeTakenMSFull << " Milliseconds" << std::endl;
+
 	std::ofstream file(filePath + "FilePaths_Angle_" + std::to_string(angle) + ".json");
 	file << j_angle.dump(2);
 	file.close();
@@ -465,19 +656,21 @@ void RunSimulationCategory3(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 3; //10
-	int numOfRays = 10; //100
-	int maxPerturbanceDev = 10; //10
+	int avg = 5; //10
+	int numOfRays = 100; //100
+	int minPerturbamceDev = 10;
+	int maxPerturbanceDev = 20; //10
+	int perturbanceStep = 2;
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 325; //1000
-	int startLayers = 50;
-	int endLayers = 100; //250
-	int layerStepSize = 50;
+	int endWavelength = 1000; //1000
+	int startLayers = 3;
+	int endLayers = 15; //250
+	int layerStepSize = 2;
 
-	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev) / 2.0) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
+	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbamceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
 
 	std::cout << "Total Runs : " << totalRuns << std::endl;
 	int simIndex = 0;
@@ -492,7 +685,9 @@ void RunSimulationCategory3(int angle)
 
 	CreateFolder(angleFilePath);
 
-	for (int p = 0; p <= maxPerturbanceDev; p += 2)
+	auto startFull = std::chrono::high_resolution_clock::now();
+
+	for (int p = minPerturbamceDev; p <= maxPerturbanceDev; p += perturbanceStep)
 	{
 		json j_perturbance;
 
@@ -554,6 +749,316 @@ void RunSimulationCategory3(int angle)
 		j_angle[perturbanceName] = j_perturbance;
 	}
 
+	auto endFull = std::chrono::high_resolution_clock::now();
+	double timeTakenMSFull = std::chrono::duration<double, std::milli>(endFull - startFull).count();
+	std::cout << "Simulations took : " << timeTakenMSFull << " Milliseconds" << std::endl;
+
+	std::ofstream file(filePath + "FilePaths_Angle_" + std::to_string(angle) + ".json");
+	file << j_angle.dump(2);
+	file.close();
+}
+
+void RunSimulationCategory4()
+{
+	std::string filePath = "Simulations/Simulation4_InternalWavelengthSweep";
+
+	CreateFolder("Simulations");
+	CreateFolder(filePath);
+
+	filePath = filePath + "/";
+
+	int numOfRays = 100;
+	int maxAngle = 60;
+
+	int angleStep = 5;
+	int wavelengthStep = 1;
+	int startWavelength = 300;
+	int endWavelength = 1000; //1000
+	int startLayers = 3;
+	int endLayers = 15; //250
+	int layerStepSize = 2;
+
+	int totalRuns = (((endWavelength - startWavelength) / wavelengthStep) + 1) * (((endLayers - startLayers) / layerStepSize) + 1) * 3;
+
+	int simIndex = 0;
+
+	json j;
+
+	auto startFull = std::chrono::high_resolution_clock::now();
+
+	for (int a = 0; a <= maxAngle; a += angleStep)
+	{
+		json j_angle;
+
+		std::cout << "Starting Angle: " << a << " degrees" << std::endl;
+
+		std::string angleName = "Angle_" + std::to_string(a);
+
+		std::string angleFilePath = filePath + angleName;
+
+		CreateFolder(angleFilePath);
+
+		for (int l = startLayers; l <= endLayers; l += layerStepSize)
+		{
+			json j_layers;
+
+			std::string layerName = "Layers_" + std::to_string(l);
+
+			std::string layerFilePath = angleFilePath + "/" + layerName;
+
+			CreateFolder(layerFilePath);
+
+			std::vector<std::string> filePaths = std::vector<std::string>();
+
+			for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+			{
+				auto start = std::chrono::high_resolution_clock::now();
+
+				filePaths.push_back(RunInternalWavelengthSweep(layerFilePath, l, y, numOfRays, 0, a));
+
+				simIndex++;
+
+				double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+
+				std::cout << "Completed Wavelength " << y << " : " << percentComplete << " % " << " (" << timeTakenMS << " ms)" << std::endl;
+			}
+
+			j_angle[layerName] = filePaths;
+		}
+
+		j[angleName] = j_angle;
+	}
+
+	auto endFull = std::chrono::high_resolution_clock::now();
+	double timeTakenMSFull = std::chrono::duration<double, std::milli>(endFull - startFull).count();
+	std::cout << "Simulations took : " << timeTakenMSFull << " Milliseconds" << std::endl;
+
+	std::ofstream file(filePath + "FilePaths.json");
+	file << j.dump(2);
+	file.close();
+}
+
+void RunSimulationCategory5(int angle)
+{
+	std::string filePath = "Simulations/Simulation5_InternalWavelengthSweepWithPerturbance";
+
+	CreateFolder("Simulations");
+	CreateFolder(filePath);
+
+	filePath = filePath + "/";
+
+	int avg = 5; //10
+	int numOfRays = 100; //100
+	int minPerturbamceDev = 10;
+	int maxPerturbanceDev = 20; //10
+	int perturbanceStep = 2;
+
+	int angleStep = 5;
+	int wavelengthStep = 1;
+	int startWavelength = 300;
+	int endWavelength = 1000; //1000
+	int startLayers = 3;
+	int endLayers = 15; //250
+	int layerStepSize = 2;
+
+	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbamceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
+
+	std::cout << "Total Runs : " << totalRuns << std::endl;
+	int simIndex = 0;
+
+	json j_angle;
+
+	std::cout << "Starting Angle: " << angle << " degrees" << std::endl;
+
+	std::string angleName = "Angle_" + std::to_string(angle);
+
+	std::string angleFilePath = filePath + angleName;
+
+	CreateFolder(angleFilePath);
+
+	auto startFull = std::chrono::high_resolution_clock::now();
+
+	for (int p = minPerturbamceDev; p <= maxPerturbanceDev; p += perturbanceStep)
+	{
+		json j_perturbance;
+
+		std::string perturbanceName = "PerturbanceDev_" + std::to_string(p);
+
+		std::string perturbanceFilePath = angleFilePath + "/" + perturbanceName;
+
+		CreateFolder(perturbanceFilePath);
+
+		for (int l = startLayers; l <= endLayers; l += layerStepSize)
+		{
+			json j_layers;
+
+			std::string layerName = "Layers_" + std::to_string(l);
+
+			std::string layerFilePath = perturbanceFilePath + "/" + layerName;
+
+			CreateFolder(layerFilePath);
+
+			for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+			{
+				json j_wavelength;
+
+				std::string wavelengthName = "Wavelength_" + std::to_string(y);
+
+				std::string wavelengthFilePath = layerFilePath + "/" + wavelengthName;
+
+				CreateFolder(wavelengthFilePath);
+
+				std::vector<std::string> filePaths = std::vector<std::string>();
+
+				auto start = std::chrono::high_resolution_clock::now();
+
+				for (int i = 0; i < avg; i++)
+				{
+					filePaths.push_back(RunInternalWavelengthSweepWithPerturbance(wavelengthFilePath, l, y, numOfRays, i, angle, p));
+
+					simIndex++;
+				}
+
+				double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+
+				std::cout << "Completed Wavelength " << y << " : " << percentComplete << "%" << " (" << timeTakenMS << " ms)" << std::endl;
+
+				j_layers[wavelengthName] = filePaths;
+			}
+
+			std::cout << "Completed Layers " << l << std::endl;
+
+			j_perturbance[layerName] = j_layers;
+		}
+
+		std::cout << "Completed Perturbance " << p << std::endl;
+
+		j_angle[perturbanceName] = j_perturbance;
+	}
+
+	auto endFull = std::chrono::high_resolution_clock::now();
+	double timeTakenMSFull = std::chrono::duration<double, std::milli>(endFull - startFull).count();
+	std::cout << "Simulations took : " << timeTakenMSFull << " Milliseconds" << std::endl;
+
+	std::ofstream file(filePath + "FilePaths_Angle_" + std::to_string(angle) + ".json");
+	file << j_angle.dump(2);
+	file.close();
+}
+
+void RunSimulationCategory6(int angle)
+{
+	std::string filePath = "Simulations/Simulation6_InternalWavelengthSweepWithWaveWithPerturbance";
+
+	CreateFolder("Simulations");
+	CreateFolder(filePath);
+
+	filePath = filePath + "/";
+
+	int avg = 5; //10
+	int numOfRays = 100; //100
+	int minPerturbamceDev = 10;
+	int maxPerturbanceDev = 20; //10
+	int perturbanceStep = 2;
+
+	//int angleStep = 5;
+	int wavelengthStep = 1;
+	int startWavelength = 300;
+	int endWavelength = 1000; //1000
+	int startLayers = 3;
+	int endLayers = 15; //250
+	int layerStepSize = 2;
+
+	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbamceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
+
+	std::cout << "Total Runs : " << totalRuns << std::endl;
+	int simIndex = 0;
+
+	json j_angle;
+
+	std::cout << "Starting Angle: " << angle << " degrees" << std::endl;
+
+	std::string angleName = "Angle_" + std::to_string(angle);
+
+	std::string angleFilePath = filePath + angleName;
+
+	CreateFolder(angleFilePath);
+
+	auto startFull = std::chrono::high_resolution_clock::now();
+
+	for (int p = minPerturbamceDev; p <= maxPerturbanceDev; p += perturbanceStep)
+	{
+		json j_perturbance;
+
+		std::string perturbanceName = "PerturbanceDev_" + std::to_string(p);
+
+		std::string perturbanceFilePath = angleFilePath + "/" + perturbanceName;
+
+		CreateFolder(perturbanceFilePath);
+
+		for (int l = startLayers; l <= endLayers; l += layerStepSize)
+		{
+			json j_layers;
+
+			std::string layerName = "Layers_" + std::to_string(l);
+
+			std::string layerFilePath = perturbanceFilePath + "/" + layerName;
+
+			CreateFolder(layerFilePath);
+
+			for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+			{
+				json j_wavelength;
+
+				std::string wavelengthName = "Wavelength_" + std::to_string(y);
+
+				std::string wavelengthFilePath = layerFilePath + "/" + wavelengthName;
+
+				CreateFolder(wavelengthFilePath);
+
+				std::vector<std::string> filePaths = std::vector<std::string>();
+
+				auto start = std::chrono::high_resolution_clock::now();
+
+				for (int i = 0; i < avg; i++)
+				{
+					filePaths.push_back(RunInternalWavelengthSweepWithWaveWithPerturbance(wavelengthFilePath, l, y, numOfRays, i, angle, p));
+
+					simIndex++;
+				}
+
+				double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+
+				auto end = std::chrono::high_resolution_clock::now();
+
+				double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+
+				std::cout << "Completed Wavelength " << y << " : " << percentComplete << "%" << " (" << timeTakenMS << " ms)" << std::endl;
+
+				j_layers[wavelengthName] = filePaths;
+			}
+
+			std::cout << "Completed Layers " << l << std::endl;
+
+			j_perturbance[layerName] = j_layers;
+		}
+
+		std::cout << "Completed Perturbance " << p << std::endl;
+
+		j_angle[perturbanceName] = j_perturbance;
+	}
+
+	auto endFull = std::chrono::high_resolution_clock::now();
+	double timeTakenMSFull = std::chrono::duration<double, std::milli>(endFull - startFull).count();
+	std::cout << "Simulations took : " << timeTakenMSFull << " Milliseconds" << std::endl;
+
 	std::ofstream file(filePath + "FilePaths_Angle_" + std::to_string(angle) + ".json");
 	file << j_angle.dump(2);
 	file.close();
@@ -565,6 +1070,9 @@ void RunSimulations(int argc, char* argv[])
 	std::cout << "1. Simulation 1 - Wavelength Sweep\n";
 	std::cout << "2. Simulation 2 - Wavelength Sweep with Perturbance\n";
 	std::cout << "3. Simulation 3 - Wavelength Sweep with Perturbance and Wavy Structure\n";
+	std::cout << "4. Simulation 4 - Internal Wavelength Sweep\n";
+	std::cout << "5. Simulation 5 - Internal Wavelength Sweep with Perturbance\n";
+	std::cout << "6. Simulation 6 - Internal Wavelength Sweep with Perturbance and Wavy Structure\n";
 	//std::cout << "4. Simulation 4 - Wavy Moth Eye Layers + Segment Normal Perturbance + AM15G Spectrum\n";
 	std::cout << "Enter a number (1-4): ";
 
@@ -596,10 +1104,25 @@ void RunSimulations(int argc, char* argv[])
 		else
 			RunSimulationCategory3(0);
 		break;
+	case 4:
+		RunSimulationCategory4();
+		break;
 
-		//case 4:
-			//RunSimulationCategory4();
-		//	break;
+	case 5:
+		if (argc >= 3)
+			RunSimulationCategory5(std::stoi(argv[2]));
+		else
+			RunSimulationCategory5(50);
+
+		break;
+
+	case 6:
+
+		if (argc >= 3)
+			RunSimulationCategory6(std::stoi(argv[2]));
+		else
+			RunSimulationCategory6(0);
+		break;
 
 	default:
 		std::cout << "Invalid choice.\n";
