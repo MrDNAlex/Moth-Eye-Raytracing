@@ -1,6 +1,7 @@
 #pragma once
 #include "RaySource.h"
 #include "Ray.h"
+#include "PerturbanceGenerator.h"
 class DirectionalLight : public RaySource
 {
 public:
