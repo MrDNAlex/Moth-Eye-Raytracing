@@ -24,7 +24,7 @@ public:
 
 	double Wavelength;
 
-	Ray(double ox, double oy, double dx, double dy, double wavelength = 500, int currentBounce = 0, double power = 1.0, int maxBounce = 5000, double currentMedium=1.0) : Origin(ox, oy), Direction(dx, dy)
+	Ray(double ox, double oy, double dx, double dy, double wavelength = 500, int currentBounce = 0, double power = 1.0, int maxBounce = 2000, double currentMedium=1.0) : Origin(ox, oy), Direction(dx, dy)
 	{
 		this->Direction.Normalize();
 		this->CurrentMedium = currentMedium;
@@ -43,7 +43,7 @@ public:
 
 	bool DestroyRay()
 	{
-		return this->CurrentBounce > this->MaxBounce || this->Power < 0.001;
+		return this->CurrentBounce > this->MaxBounce || this->Power < 0.005;
 	}
 
 	Ray Clone()
