@@ -65,7 +65,7 @@ std::function<double(double)> CreateEffectiveRefractiveIndexFunction(double heig
 	double q = 2.0 / 3.0;
 
 	return [fillFactor, q](double wavelength)
-		{ 
+		{
 			double refractiveIndex = pow(fillFactor * pow(SellmeierPDMS(wavelength), q) + (1 - fillFactor) * pow(SellmeierAir(wavelength * 0.001), q), 1 / q);
 
 			//std::cout << "Refractive Index : " << refractiveIndex << " Fill Factor :" << fillFactor << std::endl;
@@ -142,6 +142,43 @@ Scene CreateUnitCellWaveguideBlock(std::string name, int waveguideLayers, Pertur
 
 		scene.AddObject(obj);
 	}
+
+	return scene;
+}
+
+Scene CreateUnitCellWaveguideBlockSingleLayer(std::string name, int waveguideLayers, PerturbanceGenerator* pertubance, double startX = -125, double endX = 125)
+{
+	Scene scene = Scene(name);
+
+	double mothEyeHeight = 250.0;
+
+	double waveguideTopLeftX = startX;
+	double waveguideTopLeftY = 250.0;
+	double waveguideTopRightX = endX;
+	double waveguideTopRightY = 250.0;
+	double waveguideBottomLeftX = startX;
+	double waveguideBottomLeftY = 0.0;
+	double waveguideBottomRightX = endX;
+	double waveguideBottomRightY = 0.0;
+
+	double targetY = -500.0;
+
+	scene.AddObject(new Mirror(waveguideTopLeftX, waveguideTopLeftY, waveguideBottomLeftX, targetY));
+	scene.AddObject(new Mirror(waveguideTopRightX, waveguideTopRightY, waveguideBottomRightX, targetY));
+	scene.AddObject(new Target(waveguideBottomLeftX, targetY, waveguideBottomRightX, targetY));
+
+	NormalPerturbance perturbance = NormalPerturbance(1, 0.5);
+
+	int layers = 10000;
+	double top = -100.0;
+	double bottom = -400.0;
+	double stepSize = (bottom - top) / (double)layers;
+
+	Object* obj = new Object();
+
+	obj->AddSegment(startX, waveguideTopLeftY, endX, waveguideTopLeftY, SellmeierPDMS, pertubance);
+
+	scene.AddObject(obj);
 
 	return scene;
 }
@@ -320,6 +357,33 @@ std::string RunWavelengthSweep(std::string path, int numOfLayers, double wavelen
 	std::string name = "WavelengthSweep_Wavelength_" + std::to_string(wavelength) + "AVG_" + std::to_string(avgIndex);
 
 	Scene scene = CreateUnitCellWaveguideBlock(name, numOfLayers, new ConstantPerturbance(0), startX, endX);
+
+	scene.AddObject(new Mirror(startX, 500.0, startX, 0));
+	scene.AddObject(new Mirror(endX, 500.0, endX, 0));
+
+	double pi = 3.14159265358979323846;
+	double radians = angle * pi / 180.0;
+	double emitterLength = (endX - startX) * 0.95;
+
+	double xStart = -(cos(radians) * emitterLength) + endX * 0.95;
+	double yStart = sin(radians) * emitterLength + sourceHeight;
+
+	scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0)));
+
+	scene.Render(true, false, false, false, false, path);
+
+	return path + "/" + name;
+}
+
+std::string RunWavelengthSweepSingleLayer(std::string path, int numOfLayers, double wavelength, int numOfRays, int avgIndex, double angle)
+{
+	double startX = -125.0;
+	double endX = 125.0;
+	double sourceHeight = 300.0;
+
+	std::string name = "WavelengthSweep_Wavelength_" + std::to_string(wavelength) + "AVG_" + std::to_string(avgIndex);
+
+	Scene scene = CreateUnitCellWaveguideBlockSingleLayer(name, numOfLayers, new ConstantPerturbance(0), startX, endX);
 
 	scene.AddObject(new Mirror(startX, 500.0, startX, 0));
 	scene.AddObject(new Mirror(endX, 500.0, endX, 0));
@@ -626,7 +690,7 @@ void RunSimulationCategory2(int angle)
 	int endLayers = 3; //250
 	int layerStepSize = 1;
 
-	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbanceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers)/layerStepSize)+1);
+	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbanceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
 
 	std::cout << "Total Runs : " << totalRuns << std::endl;
 	int simIndex = 0;
@@ -1131,6 +1195,77 @@ void RunSimulationCategory6(int angle)
 	file.close();
 }
 
+void RunSimulationCategory7()
+{
+	std::string filePath = "Simulations/Simulation7_WavelengthSweep";
+
+	CreateFolder("Simulations");
+	CreateFolder(filePath);
+
+	filePath = filePath + "/";
+
+	int numOfRays = 10000;
+	int maxAngle = 60;
+
+	int angleStep = 5;
+	int wavelengthStep = 1;
+	int startWavelength = 300;
+	int endWavelength = 1000; //1000
+	int startLayers = 1;
+	int endLayers = 1; //250
+	int layerStepSize = 1;
+
+	int totalRuns = (((endWavelength - startWavelength) / wavelengthStep) + 1) * (((endLayers - startLayers) / layerStepSize) + 1) * 3;
+
+	int simIndex = 0;
+
+	json j;
+
+	auto startFull = std::chrono::high_resolution_clock::now();
+
+	for (int a = 0; a <= maxAngle; a += angleStep)
+	{
+		json j_angle;
+
+		std::cout << "Starting Angle: " << a << " degrees" << std::endl;
+
+		std::string angleName = "Angle_" + std::to_string(a);
+
+		std::string angleFilePath = filePath + angleName;
+
+		CreateFolder(angleFilePath);
+
+		std::vector<std::string> filePaths = std::vector<std::string>();
+
+		for (int y = startWavelength; y <= endWavelength; y += wavelengthStep)
+		{
+			auto start = std::chrono::high_resolution_clock::now();
+
+			filePaths.push_back(RunWavelengthSweepSingleLayer(angleFilePath, 1, y, numOfRays, 0, a));
+
+			simIndex++;
+
+			double percentComplete = ((double)simIndex / (double)totalRuns) * 100.0;
+
+			auto end = std::chrono::high_resolution_clock::now();
+
+			double timeTakenMS = std::chrono::duration<double, std::milli>(end - start).count();
+
+			std::cout << "Completed Wavelength " << y << " : " << percentComplete << " % " << " (" << timeTakenMS << " ms)" << std::endl;
+		}
+
+		j[angleName] = filePaths;
+	}
+
+	auto endFull = std::chrono::high_resolution_clock::now();
+	double timeTakenMSFull = std::chrono::duration<double, std::milli>(endFull - startFull).count();
+	std::cout << "Simulations took : " << timeTakenMSFull << " Milliseconds" << std::endl;
+
+	std::ofstream file(filePath + "FilePaths.json");
+	file << j.dump(2);
+	file.close();
+}
+
 void RunSimulations(int argc, char* argv[])
 {
 	std::cout << "Select a simulation to run:\n";
@@ -1144,7 +1279,7 @@ void RunSimulations(int argc, char* argv[])
 	std::cout << "Enter a number (1-4): ";
 
 	int choice;
-	
+
 	if (argc >= 2)
 		choice = std::stoi(argv[1]);
 	else
@@ -1189,6 +1324,10 @@ void RunSimulations(int argc, char* argv[])
 			RunSimulationCategory6(std::stoi(argv[2]));
 		else
 			RunSimulationCategory6(0);
+		break;
+
+	case 7:
+		RunSimulationCategory7();
 		break;
 
 	default:
