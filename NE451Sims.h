@@ -2,6 +2,13 @@
 #include <functional>
 #include <cmath>
 #include "NormalPerturbance.h"
+#include "Object.h"
+#include "Mirror.h"
+#include "ConstantWavelengthGenerator.h"
+#include "DirectionalLight.h"
+#include "Scene.h"
+#include "Utilities.h"
+#include "AM15GWavelengthGenerator.h"
 
 double SellmeierMicron(double wavelength)
 {
