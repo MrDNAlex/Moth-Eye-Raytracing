@@ -80,12 +80,8 @@ public:
 		RayHit hit = Intersect(ray);
 
 		Vec2 newOrigin = ray->GetIntersectionPosition(hit.Distance);
-
 		Vec2 direction = ray->Direction;
 		Vec2 normal = GetNormal(true, true);
-
-		//direction.Normalize();
-
 		Vec2 newDirection = direction - (normal * 2.0 * direction.Dot(normal));
 
 		ray->Origin = newOrigin;
@@ -110,8 +106,8 @@ public:
 
 		double transmitSin = (n1 / n2) * incidentSin;
 
+		// Total internal reflection
 		if (transmitSin >= 1.0)
-			// Total internal reflection
 			return Reflect(ray);
 
 		double transmissionCos = std::sqrt(std::max(0.0, 1.0 - transmitSin * transmitSin));

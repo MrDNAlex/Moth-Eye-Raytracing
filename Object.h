@@ -92,28 +92,6 @@ public:
 		Split(*parent.RightNode, depth + 1);
 	}
 
-	//RayHit Intersect(Ray* ray)
-	//{
-	//	double minT = INFINITY;
-	//	Segment* closestSegment = nullptr;
-	//
-	//	for (Segment& segment : Segments)
-	//	{
-	//		RayHit hit = segment.Intersect(ray);
-	//
-	//		if (hit.Hit && hit.Distance < minT)
-	//		{
-	//			minT = hit.Distance;
-	//			closestSegment = &segment;
-	//		}
-	//	}
-	//
-	//	if (closestSegment == nullptr)
-	//		return RayHit(false, 0.0, nullptr);
-	//	else
-	//		return RayHit(true, minT, closestSegment);
-	//}
-
 	//Create a Function to Get Closest Corner of Bounds
 
 	double ShortestDistanceSqr(Ray* ray)
@@ -249,8 +227,6 @@ protected:
 
 		Vec2 normal = segment->GetNormal(true, true);
 
-		//ray->Direction.Normalize();
-		
 		double incidentCos = -normal.Dot(ray->Direction);
 
 		if (incidentCos < 0)

@@ -68,8 +68,6 @@ std::function<double(double)> CreateEffectiveRefractiveIndexFunction(double heig
 		{
 			double refractiveIndex = pow(fillFactor * pow(SellmeierPDMS(wavelength), q) + (1 - fillFactor) * pow(SellmeierAir(wavelength * 0.001), q), 1 / q);
 
-			//std::cout << "Refractive Index : " << refractiveIndex << " Fill Factor :" << fillFactor << std::endl;
-
 			return refractiveIndex;
 		};
 }
@@ -122,12 +120,6 @@ Scene CreateUnitCellWaveguideBlock(std::string name, int waveguideLayers, Pertur
 
 		PDMSVolume->AddSegment(waveguideBottomLeftX, yVal, waveguideBottomRightX, yVal, [pert](double wavelength) { return SellmeierPDMS(wavelength) * pert; }, new ConstantPerturbance(0));
 	}
-
-	/*Object* airInterface = new Object();
-
-	airInterface->AddSegment(waveguideBottomLeftX, -400.0, waveguideBottomRightX, -400.0, [](double wavelength) { return SellmeierAir(wavelength); }, new ConstantPerturbance(0));
-
-	scene.AddObject(airInterface);*/
 
 	std::vector<double> waveguidePosition = linspace(waveguideTopLeftY, waveguideBottomLeftY, waveguideLayers);
 
@@ -285,12 +277,6 @@ Scene CreateUnitCellWaveWaveguideBlock(std::string name, int waveguideLayers, Pe
 		PDMSVolume->AddSegment(waveguideBottomLeftX, yVal, waveguideBottomRightX, yVal, [pert](double wavelength) { return SellmeierPDMS(wavelength) * pert; }, new ConstantPerturbance(0));
 	}
 
-	/*Object* airInterface = new Object();
-
-	airInterface->AddSegment(waveguideBottomLeftX, -100.0, waveguideBottomRightX, -100.0, [](double wavelength) { return SellmeierAir(wavelength); }, new ConstantPerturbance(0));
-
-	scene.AddObject(airInterface);*/
-
 	std::vector<double> waveguidePosition = linspace(waveguideTopLeftY, waveguideBottomLeftY, waveguideLayers);
 
 	GaussianDistribution gauss = GaussianDistribution(1.2 * (endX - startX), 0.5 * (endX - startX));
@@ -419,16 +405,12 @@ std::string RunInternalWavelengthSweep(std::string path, int numOfLayers, double
 	double radians = angle * pi / 180.0;
 	double emitterLength = (endX - startX) * 0.95;
 
-	//double xStart = -(cos(radians) * emitterLength) + endX * 0.95;
-	//double yStart = -sin(radians) * emitterLength + sourceHeight;
-
+	//Mathematical Derivation of Cone Emission
 	double x1 = cos(5 * pi / 180.0);
 	double y1 = sin(5 * pi / 180.0) + sourceHeight;
 	double x2 = -cos(5 * pi / 180.0);
 
 	scene.AddRaySource(new ConeLight(0, sourceHeight, x1, y1, x2, y1, numOfRays, new ConstantWavelengthGenerator(wavelength), SellmeierPDMS(wavelength)));
-
-	//scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0), false, 1.41 ));
 
 	scene.Render(true, false, false, false, false, path);
 
@@ -493,16 +475,12 @@ std::string RunInternalWavelengthSweepWithPerturbance(std::string path, int numO
 	double radians = angle * pi / 180.0;
 	double emitterLength = (endX - startX) * 0.95;
 
-	//double xStart = -(cos(radians) * emitterLength) + endX * 0.95;
-	//double yStart = -sin(radians) * emitterLength + sourceHeight;
-
+	//Mathematical Derivation of Cone Emission
 	double x1 = cos(5 * pi / 180.0);
 	double y1 = sin(5 * pi / 180.0) + sourceHeight;
 	double x2 = -cos(5 * pi / 180.0);
 
 	scene.AddRaySource(new ConeLight(0, sourceHeight, x1, y1, x2, y1, numOfRays, new ConstantWavelengthGenerator(wavelength), SellmeierPDMS(wavelength)));
-
-	//scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0), false, 1.41));
 
 	scene.Render(true, false, false, false, false, path);
 
@@ -567,16 +545,12 @@ std::string RunInternalWavelengthSweepWithWaveWithPerturbance(std::string path, 
 	double radians = angle * pi / 180.0;
 	double emitterLength = (endX - startX) * 0.95;
 
-	//double xStart = -(cos(radians) * emitterLength) + endX * 0.95;
-	//double yStart = -sin(radians) * emitterLength + sourceHeight;
-
+	//Mathematical Derivation of Cone Emission
 	double x1 = cos(5 * pi / 180.0);
 	double y1 = sin(5 * pi / 180.0) + sourceHeight;
 	double x2 = -cos(5 * pi / 180.0);
 
 	scene.AddRaySource(new ConeLight(0, sourceHeight, x1, y1, x2, y1, numOfRays, new ConstantWavelengthGenerator(wavelength), SellmeierPDMS(wavelength)));
-
-	//scene.AddRaySource(new DirectionalLight(xStart, yStart, endX * 0.95, sourceHeight, numOfRays, new ConstantWavelengthGenerator(wavelength), new ConstantPerturbance(0), false, 1.41));
 
 	scene.Render(true, false, false, false, false, path);
 
@@ -676,18 +650,18 @@ void RunSimulationCategory2(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 5; //10
-	int numOfRays = 100000; //100
+	int avg = 5;
+	int numOfRays = 100000;
 	int minPerturbanceDev = 6;
-	int maxPerturbanceDev = 6; //10
+	int maxPerturbanceDev = 6;
 	int perturbanceStep = 2;
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 1000;
 	int startLayers = 3;
-	int endLayers = 3; //250
+	int endLayers = 3;
 	int layerStepSize = 1;
 
 	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbanceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
@@ -787,18 +761,18 @@ void RunSimulationCategory3(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 5; //10
-	int numOfRays = 50000; //100
+	int avg = 5;
+	int numOfRays = 50000;
 	int minPerturbamceDev = 6;
-	int maxPerturbanceDev = 6; //10
+	int maxPerturbanceDev = 6;
 	int perturbanceStep = 2;
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 1000;
 	int startLayers = 3;
-	int endLayers = 3; //250
+	int endLayers = 3;
 	int layerStepSize = 1;
 
 	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbamceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
@@ -904,9 +878,9 @@ void RunSimulationCategory4()
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 1000;
 	int startLayers = 40;
-	int endLayers = 40; //250
+	int endLayers = 40;
 	int layerStepSize = 1;
 
 	int totalRuns = (((endWavelength - startWavelength) / wavelengthStep) + 1) * (((endLayers - startLayers) / layerStepSize) + 1) * 3;
@@ -982,18 +956,18 @@ void RunSimulationCategory5(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 5; //10
-	int numOfRays = 2000; //100
+	int avg = 5;
+	int numOfRays = 2000;
 	int minPerturbamceDev = 6;
-	int maxPerturbanceDev = 6; //10
+	int maxPerturbanceDev = 6;
 	int perturbanceStep = 2;
 
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 1000;
 	int startLayers = 40;
-	int endLayers = 40; //250
+	int endLayers = 40;
 	int layerStepSize = 1;
 
 	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbamceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
@@ -1093,18 +1067,17 @@ void RunSimulationCategory6(int angle)
 
 	filePath = filePath + "/";
 
-	int avg = 5; //10
-	int numOfRays = 2000; //100
+	int avg = 5;
+	int numOfRays = 2000;
 	int minPerturbamceDev = 6;
-	int maxPerturbanceDev = 6; //10
+	int maxPerturbanceDev = 6;
 	int perturbanceStep = 2;
 
-	//int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 1000;
 	int startLayers = 40;
-	int endLayers = 40; //250
+	int endLayers = 40;
 	int layerStepSize = 1;
 
 	int totalRuns = ((endWavelength - startWavelength) / wavelengthStep + 1) * (((maxPerturbanceDev - minPerturbamceDev) / perturbanceStep) + 1) * avg * (((endLayers - startLayers) / layerStepSize) + 1);
@@ -1210,9 +1183,9 @@ void RunSimulationCategory7()
 	int angleStep = 5;
 	int wavelengthStep = 1;
 	int startWavelength = 300;
-	int endWavelength = 1000; //1000
+	int endWavelength = 1000;
 	int startLayers = 1;
-	int endLayers = 1; //250
+	int endLayers = 1;
 	int layerStepSize = 1;
 
 	int totalRuns = (((endWavelength - startWavelength) / wavelengthStep) + 1) * (((endLayers - startLayers) / layerStepSize) + 1) * 3;
@@ -1275,7 +1248,7 @@ void RunSimulations(int argc, char* argv[])
 	std::cout << "4. Simulation 4 - Internal Wavelength Sweep\n";
 	std::cout << "5. Simulation 5 - Internal Wavelength Sweep with Perturbance\n";
 	std::cout << "6. Simulation 6 - Internal Wavelength Sweep with Perturbance and Wavy Structure\n";
-	//std::cout << "4. Simulation 4 - Wavy Moth Eye Layers + Segment Normal Perturbance + AM15G Spectrum\n";
+	std::cout << "7. Simulation 7 - Wavelength Sweep (Control)\n";
 	std::cout << "Enter a number (1-4): ";
 
 	int choice;
